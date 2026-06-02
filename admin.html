@@ -237,7 +237,7 @@
       <div class="rac-header">
         <div>
           <div class="rac-firm">${sub.firm_name}${sub.is_new_firm ? '<span class="new-firm-badge">New firm</span>' : ''}</div>
-          <div class="rac-meta">Submitted ${date} · ${sub.author_name || 'Anonymous'} · ${sub.author_email}</div>
+          <div class="rac-meta">Submitted ${date} · ${sub.author_name || 'Anonymous'}${sub.author_email ? ' · ' + sub.author_email : ''}</div>
         </div>
         <div class="rac-badges">
           <span class="rac-source ${srcMap[sub.source_type]}">${srcLabel[sub.source_type]}</span>
