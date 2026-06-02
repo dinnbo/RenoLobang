@@ -76,7 +76,10 @@ exports.handler = async (event) => {
 
   if (error) {
     console.error('Supabase insert error:', error);
-    return { statusCode: 500, body: JSON.stringify({ error: 'Failed to save submission' }) };
+    return {
+  statusCode: 500,
+  body: JSON.stringify({ error: error.message, details: error.details })
+};
   }
 
   // Trigger email notification (fire and forget)
