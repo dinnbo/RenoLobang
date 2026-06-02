@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Firm Reviews – RenoLobang</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500&family=DM+Serif+Display&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --green: #1D9E75; --green-dark: #0F6E56; --green-deeper: #085041;
+      --green-light: #E1F5EE; --green-mid: #5DCAA5;
+      --blue-light: #E6F1FB; --blue: #378ADD; --blue-dark: #185FA5; --blue-mid: #85B7EB;
+      --amber-light: #FAEEDA; --amber: #EF9F27; --amber-dark: #854F0B; --amber-mid: #FAC775;
+      --gray-light: #F1EFE8; --gray-mid: #B4B2A9; --gray-dark: #444441;
+      --red-light: #FCEBEB; --red: #E24B4A; --red-dark: #A32D2D; --red-mid: #F09595;
+      --text: #1a1a1a; --text-muted: #666; --text-faint: #999;
+      --border: rgba(0,0,0,0.1); --border-strong: rgba(0,0,0,0.18);
+      --bg: #ffffff; --bg-secondary: #f7f7f5;
+      --radius: 10px; --radius-lg: 14px;
+    }
+    html { scroll-behavior: smooth; }
+    body { font-family: 'DM Sans', sans-serif; font-size: 15px; color: var(--text); background: var(--bg); line-height: 1.6; min-height: 100vh; }
+
+    nav { position: sticky; top: 0; z-index: 100; background: rgba(255,255,255,0.92); backdrop-filter: blur(8px); border-bottom: 0.5px solid var(--border); padding: 0 1.5rem; display: flex; align-items: center; justify-content: space-between; height: 52px; }
+    .nav-logo { font-family: 'DM Serif Display', serif; font-size: 20px; color: var(--text); text-decoration: none; }
+    .nav-logo span { color: var(--green); }
+    .nav-links { display: flex; gap: 1.5rem; align-items: center; }
+    .nav-links a { font-size: 13px; color: var(--text-muted); text-decoration: none; transition: color 0.15s; }
+    .nav-links a:hover { color: var(--text); }
+    .nav-submit { background: var(--green) !important; color: #fff !important; padding: 6px 14px; border-radius: 20px; }
+    .nav-submit:hover { background: var(--green-dark) !important; }
+
+    /* FIRM HEADER */
+    .firm-header { background: var(--bg-secondary); border-bottom: 0.5px solid var(--border); padding: 2rem 1.5rem; }
+    .firm-header-inner { max-width: 740px; margin: 0 auto; }
+    .back-link { display: inline-flex; align-items: center; gap: 5px; font-size: 13px; color: var(--text-muted); text-decoration: none; margin-bottom: 1.25rem; transition: color 0.15s; }
+    .back-link:hover { color: var(--text); }
+    .firm-header-top { display: flex; align-items: flex-start; gap: 16px; margin-bottom: 1.25rem; }
+    .firm-avatar-lg { width: 56px; height: 56px; border-radius: var(--radius); background: var(--green-light); display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 500; color: var(--green-deeper); flex-shrink: 0; border: 0.5px solid var(--green-mid); }
+    .firm-header-info { flex: 1; }
+    .firm-header-name { font-family: 'DM Serif Display', serif; font-size: 26px; font-weight: 400; color: var(--text); margin-bottom: 4px; line-height: 1.2; }
+    .firm-header-meta { font-size: 13px; color: var(--text-muted); display: flex; gap: 1rem; flex-wrap: wrap; align-items: center; }
+    .firm-header-meta a { color: var(--green-dark); text-decoration: none; }
+    .firm-header-meta a:hover { text-decoration: underline; }
+
+    /* SCORE CARD */
+    .score-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 1.25rem; }
+    .score-card { background: #fff; border: 0.5px solid var(--border); border-radius: var(--radius); padding: 0.875rem 1rem; text-align: center; min-width: 80px; }
+    .score-num { font-family: 'DM Serif Display', serif; font-size: 24px; color: var(--text); display: block; line-height: 1; margin-bottom: 2px; }
+    .score-label { font-size: 11px; color: var(--text-muted); }
+    .score-stars { color: var(--amber); font-size: 15px; display: block; margin-bottom: 2px; }
+
+    /* AFFILIATE NOTICE */
+    .affiliate-notice { background: var(--bg-secondary); border: 0.5px solid var(--border-strong); border-radius: var(--radius); padding: 10px 14px; font-size: 13px; color: var(--text-muted); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 1rem; }
+    .affiliate-notice a { color: var(--green-dark); text-decoration: none; font-weight: 500; }
+    .affiliate-notice a:hover { text-decoration: underline; }
+
+    /* DESCRIPTION */
+    .firm-description { font-size: 14px; color: var(--text-muted); margin-top: 0.75rem; line-height: 1.6; max-width: 560px; }
+
+    /* MAIN */
+    .main { max-width: 740px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+
+    /* FILTERS */
+    .reviews-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem; flex-wrap: wrap; gap: 10px; }
+    .reviews-title { font-size: 14px; font-weight: 500; color: var(--text-muted); }
+    .filters { display: flex; gap: 6px; flex-wrap: wrap; }
+    .filter-btn { padding: 5px 13px; font-size: 12px; font-family: 'DM Sans', sans-serif; border: 0.5px solid var(--border-strong); border-radius: 20px; background: #fff; color: var(--text-muted); cursor: pointer; transition: all 0.12s; }
+    .filter-btn:hover { border-color: var(--green); color: var(--green-dark); }
+    .filter-btn.active { background: var(--green-light); border-color: var(--green-mid); color: var(--green-deeper); }
+
+    /* LEGEND */
+    .legend { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 1.25rem; padding: 10px 14px; background: var(--bg-secondary); border-radius: var(--radius); border: 0.5px solid var(--border); }
+    .legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-muted); }
+    .legend-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+    /* REVIEW CARDS */
+    .review-card { background: #fff; border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 1.25rem; margin-bottom: 10px; }
+
+    .review-card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+    .review-source-badge { font-size: 11px; padding: 3px 9px; border-radius: 20px; flex-shrink: 0; }
+    .badge-verified { background: var(--green-light); color: var(--green-deeper); border: 0.5px solid var(--green-mid); }
+    .badge-unverified { background: var(--gray-light); color: var(--gray-dark); border: 0.5px solid var(--gray-mid); }
+    .badge-community { background: var(--blue-light); color: var(--blue-dark); border: 0.5px solid var(--blue-mid); }
+    .badge-media { background: var(--amber-light); color: var(--amber-dark); border: 0.5px solid var(--amber-mid); }
+
+    .review-meta { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .review-stars { color: var(--amber); font-size: 14px; letter-spacing: 1px; }
+    .review-author { font-size: 13px; font-weight: 500; color: var(--text); }
+    .review-date { font-size: 12px; color: var(--text-faint); }
+
+    .review-title { font-size: 15px; font-weight: 500; color: var(--text); margin-bottom: 8px; }
+
+    /* Reddit quote style for community reviews */
+    .review-body { font-size: 14px; color: var(--text-muted); line-height: 1.65; }
+    .review-body-quote { font-size: 14px; color: var(--text); line-height: 1.65; font-style: italic; border-left: 3px solid var(--border-strong); padding-left: 12px; margin: 4px 0; }
+    .review-source-link { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; color: var(--green-dark); text-decoration: none; margin-top: 6px; }
+    .review-source-link:hover { text-decoration: underline; }
+
+    .review-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 12px; padding-top: 10px; border-top: 0.5px solid var(--border); flex-wrap: wrap; gap: 8px; }
+    .review-tags { display: flex; gap: 5px; flex-wrap: wrap; }
+    .review-tag { font-size: 11px; padding: 2px 8px; background: var(--bg-secondary); border: 0.5px solid var(--border); border-radius: 20px; color: var(--text-muted); }
+    .review-property { font-size: 12px; color: var(--text-faint); }
+
+    /* NO REVIEWS */
+    .no-reviews { text-align: center; padding: 4rem 1rem; color: var(--text-muted); }
+    .no-reviews p { font-size: 14px; margin-top: 0.5rem; }
+
+    /* NOT FOUND */
+    .not-found { text-align: center; padding: 4rem 1rem; }
+    .not-found h2 { font-family: 'DM Serif Display', serif; font-size: 24px; font-weight: 400; margin-bottom: 0.5rem; }
+    .not-found p { font-size: 14px; color: var(--text-muted); margin-bottom: 1.5rem; }
+    .not-found a { color: var(--green-dark); text-decoration: none; }
+
+    /* SUBMIT BANNER */
+    .submit-banner { margin-top: 2rem; background: var(--green-light); border: 0.5px solid var(--green-mid); border-radius: var(--radius-lg); padding: 1.25rem 1.5rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+    .banner-text strong { display: block; font-size: 15px; font-weight: 500; color: var(--green-deeper); margin-bottom: 3px; }
+    .banner-text p { font-size: 13px; color: var(--green-dark); }
+    .banner-btn { background: var(--green); color: #fff; border: none; border-radius: var(--radius); padding: 10px 20px; font-size: 13px; font-family: 'DM Sans', sans-serif; font-weight: 500; cursor: pointer; transition: background 0.15s; white-space: nowrap; text-decoration: none; display: inline-block; }
+    .banner-btn:hover { background: var(--green-dark); }
+
+    footer { border-top: 0.5px solid var(--border); padding: 1.5rem; text-align: center; font-size: 12px; color: var(--text-faint); }
+    footer a { color: var(--text-muted); text-decoration: none; }
+    footer a:hover { color: var(--text); }
+
+    @media (max-width: 480px) { .nav-links { display: none; } .firm-header-top { flex-direction: column; gap: 10px; } }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="nav-logo">Reno<span>Lobang</span></a>
+  <div class="nav-links">
+    <a href="index.html">Browse</a>
+    <a href="about.html">How it works</a>
+    <a href="submit.html" class="nav-submit">Submit a review</a>
+  </div>
+</nav>
+
+<div id="firmHeaderWrap"></div>
+
+<main class="main" id="mainContent"></main>
+
+<footer>
+  <p>© 2025 RenoLobang · Independent, homeowner-driven · <a href="about.html">About</a> · <a href="submit.html">Submit a review</a></p>
+</footer>
+
+<script src="data.js"></script>
+<script>
+  const starLabels = ['', 'Poor', 'Below average', 'Average', 'Good', 'Excellent'];
+  let activeFilter = 'all';
+
+  function stars(rating) {
+    if (!rating) return '';
+    return '★'.repeat(rating) + '☆'.repeat(5 - rating);
+  }
+
+  function formatDate(dateStr) {
+    if (!dateStr) return '';
+    const [y, m] = dateStr.split('-');
+    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    return months[parseInt(m) - 1] + ' ' + y;
+  }
+
+  function avgRating(reviews) {
+    const rated = reviews.filter(r => r.rating);
+    if (!rated.length) return null;
+    return (rated.reduce((s, r) => s + r.rating, 0) / rated.length).toFixed(1);
+  }
+
+  function sourceBadge(source) {
+    const map = {
+      verified: '<span class="review-source-badge badge-verified">✓ Verified</span>',
+      unverified: '<span class="review-source-badge badge-unverified">◑ Unverified</span>',
+      community: '<span class="review-source-badge badge-community">◎ Community</span>',
+      media: '<span class="review-source-badge badge-media">⊞ Media</span>'
+    };
+    return map[source] || '';
+  }
+
+  function renderReviewCard(r) {
+    const isCommunity = r.source === 'community';
+    const bodyHtml = isCommunity
+      ? `<div class="review-body-quote">${r.body}</div>
+         ${r.sourceUrl ? `<a class="review-source-link" href="${r.sourceUrl}" target="_blank">View original post ↗</a>` : '<span style="font-size:12px;color:var(--text-faint)">Original post (link unavailable)</span>'}`
+      : `<div class="review-body">${r.body}</div>`;
+
+    const tagsHtml = (r.tags && r.tags.length)
+      ? `<div class="review-tags">${r.tags.map(t => `<span class="review-tag">${t}</span>`).join('')}</div>`
+      : '<div></div>';
+
+    const propertyHtml = r.propertyType ? `<span class="review-property">${r.propertyType}</span>` : '';
+
+    return `<div class="review-card">
+      <div class="review-card-top">
+        <div class="review-meta">
+          ${r.rating ? `<span class="review-stars">${stars(r.rating)}</span>` : ''}
+          <span class="review-author">${r.author || 'Anonymous'}</span>
+          ${r.date ? `<span class="review-date">${formatDate(r.date)}</span>` : ''}
+        </div>
+        ${sourceBadge(r.source)}
+      </div>
+      ${r.title ? `<div class="review-title">${r.title}</div>` : ''}
+      ${bodyHtml}
+      <div class="review-footer">
+        ${tagsHtml}
+        ${propertyHtml}
+      </div>
+    </div>`;
+  }
+
+  function renderPage() {
+    const params = new URLSearchParams(window.location.search);
+    const firmId = params.get('id');
+    const firm = firmId ? RENOLOBANG_DATA.firms.find(f => f.id === firmId) : null;
+
+    if (!firm) {
+      document.getElementById('firmHeaderWrap').innerHTML = '';
+      document.getElementById('mainContent').innerHTML = `
+        <div class="not-found">
+          <h2>Firm not found</h2>
+          <p>This firm does not exist in our database yet.</p>
+          <a href="index.html">← Back to browse</a>
+        </div>`;
+      document.title = 'Firm not found – RenoLobang';
+      return;
+    }
+
+    document.title = `${firm.name} Reviews – RenoLobang`;
+
+    const published = firm.reviews.filter(r => r.published);
+    const counts = {
+      verified: published.filter(r => r.source === 'verified').length,
+      unverified: published.filter(r => r.source === 'unverified').length,
+      community: published.filter(r => r.source === 'community').length,
+      media: published.filter(r => r.source === 'media').length
+    };
+    const avg = avgRating(published);
+
+    // Affiliate names
+    const affiliateLinks = (firm.affiliates || []).map(aid => {
+      const af = RENOLOBANG_DATA.firms.find(f => f.id === aid);
+      return af ? `<a href="firm.html?id=${af.id}">${af.name}</a>` : null;
+    }).filter(Boolean);
+
+    // Header
+    document.getElementById('firmHeaderWrap').innerHTML = `
+      <div class="firm-header">
+        <div class="firm-header-inner">
+          <a href="index.html" class="back-link">← Back to all firms</a>
+          <div class="firm-header-top">
+            <div class="firm-avatar-lg">${firm.initials}</div>
+            <div class="firm-header-info">
+              <div class="firm-header-name">${firm.name}</div>
+              <div class="firm-header-meta">
+                <span>${firm.types.join(' · ')}</span>
+                ${firm.established ? `<span>Est. ${firm.established}</span>` : ''}
+                ${firm.website ? `<a href="${firm.website}" target="_blank">Website ↗</a>` : ''}
+              </div>
+            </div>
+          </div>
+          ${firm.description ? `<div class="firm-description">${firm.description}</div>` : ''}
+          ${affiliateLinks.length ? `
+            <div class="affiliate-notice">
+              <span>🔗 Related firm${affiliateLinks.length > 1 ? 's' : ''}:</span>
+              ${affiliateLinks.join(', ')}
+              <span style="font-size:12px">– See their profile for separate reviews</span>
+            </div>` : ''}
+          <div class="score-row">
+            ${avg ? `<div class="score-card">
+              <span class="score-stars">${stars(Math.round(parseFloat(avg)))}</span>
+              <span class="score-num">${avg}</span>
+              <span class="score-label">avg rating</span>
+            </div>` : ''}
+            <div class="score-card">
+              <span class="score-num">${published.length}</span>
+              <span class="score-label">total reviews</span>
+            </div>
+            ${counts.verified ? `<div class="score-card"><span class="score-num" style="color:var(--green)">${counts.verified}</span><span class="score-label">verified</span></div>` : ''}
+            ${counts.unverified ? `<div class="score-card"><span class="score-num" style="color:var(--gray-dark)">${counts.unverified}</span><span class="score-label">unverified</span></div>` : ''}
+            ${counts.community ? `<div class="score-card"><span class="score-num" style="color:var(--blue)">${counts.community}</span><span class="score-label">community</span></div>` : ''}
+            ${counts.media ? `<div class="score-card"><span class="score-num" style="color:var(--amber-dark)">${counts.media}</span><span class="score-label">media</span></div>` : ''}
+          </div>
+        </div>
+      </div>`;
+
+    renderReviews(firm, published);
+  }
+
+  function renderReviews(firm, published) {
+    const filtered = activeFilter === 'all'
+      ? published
+      : published.filter(r => r.source === activeFilter);
+
+    const filterBtns = `
+      <div class="filters">
+        <button class="filter-btn ${activeFilter === 'all' ? 'active' : ''}" onclick="setFilter('all', this)">All (${published.length})</button>
+        ${published.filter(r => r.source === 'verified').length ? `<button class="filter-btn ${activeFilter === 'verified' ? 'active' : ''}" onclick="setFilter('verified', this)">Verified</button>` : ''}
+        ${published.filter(r => r.source === 'unverified').length ? `<button class="filter-btn ${activeFilter === 'unverified' ? 'active' : ''}" onclick="setFilter('unverified', this)">Unverified</button>` : ''}
+        ${published.filter(r => r.source === 'community').length ? `<button class="filter-btn ${activeFilter === 'community' ? 'active' : ''}" onclick="setFilter('community', this)">Community</button>` : ''}
+        ${published.filter(r => r.source === 'media').length ? `<button class="filter-btn ${activeFilter === 'media' ? 'active' : ''}" onclick="setFilter('media', this)">Media</button>` : ''}
+      </div>`;
+
+    let reviewsHtml = '';
+    if (!published.length) {
+      reviewsHtml = `<div class="no-reviews">
+        <div style="font-size:36px;margin-bottom:8px">📭</div>
+        <p>No reviews yet for this firm.</p>
+        <p style="margin-top:4px"><a href="submit.html" style="color:var(--green-dark)">Be the first to submit one.</a></p>
+      </div>`;
+    } else if (!filtered.length) {
+      reviewsHtml = `<div class="no-reviews"><p>No reviews for this filter.</p></div>`;
+    } else {
+      reviewsHtml = filtered.map(r => renderReviewCard(r)).join('');
+    }
+
+    document.getElementById('mainContent').innerHTML = `
+      <div class="reviews-header">
+        <span class="reviews-title">${filtered.length} review${filtered.length !== 1 ? 's' : ''}${activeFilter !== 'all' ? ' · ' + activeFilter : ''}</span>
+        ${filterBtns}
+      </div>
+      <div class="legend">
+        <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div>Verified – homeowner with contract proof</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--gray-mid)"></div>Unverified – homeowner, no contract proof</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--blue)"></div>Community – Reddit, Facebook, HardwareZone</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--amber)"></div>Media – news or editorial</div>
+      </div>
+      ${reviewsHtml}
+      <div class="submit-banner">
+        <div class="banner-text">
+          <strong>Renovated with ${firm.name}?</strong>
+          <p>Share your experience and help the next homeowner.</p>
+        </div>
+        <a href="submit.html" class="banner-btn">Submit a review →</a>
+      </div>`;
+  }
+
+  function setFilter(f, el) {
+    activeFilter = f;
+    const params = new URLSearchParams(window.location.search);
+    const firm = RENOLOBANG_DATA.firms.find(x => x.id === params.get('id'));
+    if (!firm) return;
+    const published = firm.reviews.filter(r => r.published);
+    renderReviews(firm, published);
+  }
+
+  renderPage();
+</script>
+</body>
+</html>

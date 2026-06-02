@@ -1,0 +1,8 @@
+{
+  "name": "renolobang",
+  "version": "1.0.0",
+  "description": "RenoLobang – Independent Singapore interior designer reviews",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.39.0"
+  }
+}
