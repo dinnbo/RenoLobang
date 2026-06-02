@@ -440,9 +440,22 @@
         document.getElementById('formWrap').style.display='none';
         document.getElementById('successScreen').classList.add('show');
       } else {
-        const err=await res.json();
-        btn.disabled=false; btn.textContent='Submit review';
-        alert('Something went wrong: '+(err.error||'Please try again.'));
+        const text = await res.text();
+
+let err;
+try {
+  err = JSON.parse(text);
+} catch {
+  err = { error: text };
+}
+
+btn.disabled = false;
+btn.textContent = 'Submit review';
+
+alert(
+  'Something went wrong: ' +
+  (err.error || err.message || err.details || text || 'Please try again.')
+);
       }
     } catch {
       btn.disabled=false; btn.textContent='Submit review';
