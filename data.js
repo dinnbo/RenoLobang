@@ -11,7 +11,36 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 const RENOLOBANG_DATA = {
-  firms: []
+  firms: [
+  {
+    id: "lome-interior-pte-ltd",
+    name: "LOME Interior Pte Ltd",
+    initials: "LI",
+    types: [
+      "HDB"
+    ],
+    established: "",
+    website: "",
+    affiliates: [],
+    description: "",
+    reviews: [
+      {
+        id: "new-966008",
+        source: "community",
+        published: true,
+        date: "2026-06-02",
+        author: "Anonymous homeowner",
+        sourceUrl: "https://www.reddit.com/r/askSingapore/comments/1pol1l5/interior_design_firm_recommendations/",
+        redditUsername: "Pilotboi",
+        originalPostDate: "2026-01-01",
+        rating: null,
+        title: "LOME Interiors at Joo Chiat",
+        body: "LOME Interiors at Joo Chiat. Engaged them and the PIC was Marvin. Not sure if he's still working there. But workmanship and quality are 10/10. Been 6 years in my home and all works are solid and of very good quality",
+        tags: []
+      }
+    ]
+  }
+]
 };
 
 // Helper: get firm by id
