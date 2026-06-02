@@ -329,8 +329,8 @@
     document.getElementById('homeownerFields').classList.toggle('show',isHomeowner);
     document.getElementById('communityFields').classList.toggle('show',source==='community');
     document.getElementById('mediaFields').classList.toggle('show',source==='media');
-    document.getElementById('ratingField').classList.toggle('show',source!=='media');
-    document.getElementById('yourDetailsSection').style.display=source==='community'?'none':'';
+    document.getElementById('ratingField').classList.toggle('show',isHomeowner);
+    document.getElementById('yourDetailsSection').style.display=(source==='community'||source==='media')?'none':'';
     document.getElementById('contractNote').textContent = source==='unverified'
       ? 'No contract? That is fine – your review will be marked Unverified. Uploading a copy upgrades it to Verified.'
       : 'PDF or image. Your personal details will not be published.';
@@ -394,23 +394,23 @@
     if (!selectedFirmName) { alert('Please select or enter a firm name.'); return; }
     const body=document.getElementById('reviewBody').value.trim();
     if (!body) { alert('Please write your review.'); return; }
-    if (currentSource!=='community') {
+    if (currentSource==='verified'||currentSource==='unverified') {
       if (!document.getElementById('authorEmail').value.trim()) { alert('Please enter your email.'); return; }
-      if (currentSource==='media' && !document.getElementById('mediaUrl').value.trim()) { alert('Please enter the article link.'); return; }
     }
+    if (currentSource==='media' && !document.getElementById('mediaUrl').value.trim()) { alert('Please enter the article link.'); return; }
     if ((currentSource==='verified'||currentSource==='unverified') && currentRating===0) { alert('Please select a star rating.'); return; }
 
     let title=document.getElementById('reviewTitle').value.trim();
     if (!title) { const s=body.split(/[.!?]/)[0].trim(); title=s.length>80?s.slice(0,77)+'...':s; }
     let authorName=document.getElementById('authorName')?document.getElementById('authorName').value.trim():'';
-    if (!authorName && currentSource!=='community') authorName='Anonymous homeowner';
+    if (!authorName && (currentSource==='verified'||currentSource==='unverified')) authorName='Anonymous homeowner';
 
     const payload={
       firmId: selectedFirmId||'',
       firmName: selectedFirmName,
       isNewFirm,
       sourceType: currentSource,
-      rating: currentRating||null,
+      rating: (currentSource==='verified'||currentSource==='unverified') ? (currentRating||null) : null,
       reviewTitle: title,
       reviewBody: body,
       tags: document.getElementById('reviewTags').value,
