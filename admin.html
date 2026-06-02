@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin – RenoLobang</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500&family=DM+Serif+Display&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --green: #1D9E75; --green-dark: #0F6E56; --green-deeper: #085041;
+      --green-light: #E1F5EE; --green-mid: #5DCAA5;
+      --blue-light: #E6F1FB; --blue-dark: #185FA5; --blue-mid: #85B7EB;
+      --amber-light: #FAEEDA; --amber-dark: #854F0B; --amber-mid: #FAC775;
+      --red-light: #FCEBEB; --red: #E24B4A; --red-dark: #A32D2D; --red-mid: #F09595;
+      --text: #1a1a1a; --text-muted: #666; --text-faint: #999;
+      --border: rgba(0,0,0,0.1); --border-strong: rgba(0,0,0,0.18);
+      --bg: #ffffff; --bg-secondary: #f7f7f5;
+      --radius: 10px; --radius-lg: 14px;
+    }
+    body { font-family: 'DM Sans', sans-serif; font-size: 14px; color: var(--text); background: var(--bg-secondary); line-height: 1.6; min-height: 100vh; }
+
+    /* LOGIN */
+    .login-screen { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 2rem; }
+    .login-card { background: #fff; border: 0.5px solid var(--border-strong); border-radius: var(--radius-lg); padding: 2rem; width: 100%; max-width: 360px; text-align: center; }
+    .login-logo { font-family: 'DM Serif Display', serif; font-size: 22px; margin-bottom: 0.25rem; }
+    .login-logo span { color: var(--green); }
+    .login-subtitle { font-size: 13px; color: var(--text-muted); margin-bottom: 1.5rem; }
+    .login-card input { width: 100%; padding: 10px 14px; border: 1px solid var(--border-strong); border-radius: var(--radius); font-size: 14px; font-family: 'DM Sans', sans-serif; outline: none; margin-bottom: 10px; }
+    .login-card input:focus { border-color: var(--green); }
+    .login-btn { width: 100%; padding: 10px; background: var(--green); color: #fff; border: none; border-radius: var(--radius); font-size: 14px; font-family: 'DM Sans', sans-serif; font-weight: 500; cursor: pointer; }
+    .login-btn:hover { background: var(--green-dark); }
+    .login-error { font-size: 12px; color: var(--red-dark); margin-top: 8px; display: none; }
+
+    /* ADMIN */
+    .admin-screen { display: none; }
+    .admin-screen.show { display: block; }
+
+    nav { background: #fff; border-bottom: 0.5px solid var(--border); padding: 0 1.5rem; display: flex; align-items: center; justify-content: space-between; height: 52px; }
+    .nav-logo { font-family: 'DM Serif Display', serif; font-size: 18px; color: var(--text); text-decoration: none; }
+    .nav-logo span { color: var(--green); }
+    .nav-right { display: flex; gap: 1rem; align-items: center; font-size: 13px; }
+    .admin-badge { background: var(--amber-light); color: var(--amber-dark); border: 0.5px solid var(--amber-mid); padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 500; }
+    .logout-btn { font-size: 12px; color: var(--text-muted); cursor: pointer; background: none; border: none; font-family: 'DM Sans', sans-serif; }
+    .logout-btn:hover { color: var(--text); }
+
+    .admin-main { max-width: 900px; margin: 0 auto; padding: 2rem 1.5rem; }
+    .page-title { font-family: 'DM Serif Display', serif; font-size: 24px; font-weight: 400; margin-bottom: 0.25rem; }
+    .page-sub { font-size: 13px; color: var(--text-muted); margin-bottom: 2rem; }
+
+    /* STATS */
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 2rem; }
+    .stat-card { background: #fff; border: 0.5px solid var(--border); border-radius: var(--radius); padding: 1rem; }
+    .stat-card-num { font-family: 'DM Serif Display', serif; font-size: 28px; display: block; }
+    .stat-card-label { font-size: 12px; color: var(--text-muted); }
+
+    /* TABS */
+    .tabs { display: flex; gap: 4px; margin-bottom: 1.25rem; border-bottom: 0.5px solid var(--border); padding-bottom: 0; }
+    .tab-btn { padding: 8px 16px; font-size: 13px; font-family: 'DM Sans', sans-serif; border: none; background: none; color: var(--text-muted); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -0.5px; }
+    .tab-btn.active { color: var(--green-dark); border-bottom-color: var(--green); font-weight: 500; }
+
+    /* REVIEW CARDS */
+    .review-admin-card { background: #fff; border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 1.1rem 1.25rem; margin-bottom: 10px; }
+    .rac-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 8px; }
+    .rac-firm { font-size: 15px; font-weight: 500; }
+    .rac-meta { font-size: 12px; color: var(--text-muted); margin-top: 1px; }
+    .rac-source { font-size: 11px; padding: 3px 8px; border-radius: 20px; }
+    .src-verified { background: var(--green-light); color: var(--green-deeper); border: 0.5px solid var(--green-mid); }
+    .src-unverified { background: #F1EFE8; color: #444441; border: 0.5px solid #B4B2A9; }
+    .src-community { background: var(--blue-light); color: var(--blue-dark); border: 0.5px solid var(--blue-mid); }
+    .src-media { background: var(--amber-light); color: var(--amber-dark); border: 0.5px solid var(--amber-mid); }
+    .rac-title { font-size: 14px; font-weight: 500; margin-bottom: 4px; }
+    .rac-body { font-size: 13px; color: var(--text-muted); line-height: 1.55; margin-bottom: 10px; }
+    .rac-details { font-size: 12px; color: var(--text-muted); display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 10px; }
+    .rac-actions { display: flex; gap: 8px; padding-top: 10px; border-top: 0.5px solid var(--border); flex-wrap: wrap; }
+    .action-btn { padding: 6px 14px; font-size: 12px; font-family: 'DM Sans', sans-serif; border-radius: var(--radius); cursor: pointer; font-weight: 500; border: 0.5px solid; }
+    .btn-publish { background: var(--green-light); color: var(--green-deeper); border-color: var(--green-mid); }
+    .btn-publish:hover { background: var(--green); color: #fff; border-color: var(--green); }
+    .btn-reject { background: var(--red-light); color: var(--red-dark); border-color: var(--red-mid); }
+    .btn-reject:hover { background: var(--red); color: #fff; border-color: var(--red); }
+    .btn-copy { background: var(--bg-secondary); color: var(--text-muted); border-color: var(--border-strong); }
+
+    .status-badge { font-size: 11px; padding: 3px 8px; border-radius: 20px; }
+    .status-published { background: var(--green-light); color: var(--green-deeper); border: 0.5px solid var(--green-mid); }
+    .status-pending { background: var(--amber-light); color: var(--amber-dark); border: 0.5px solid var(--amber-mid); }
+    .status-rejected { background: var(--red-light); color: var(--red-dark); border: 0.5px solid var(--red-mid); }
+
+    /* HOW TO PUBLISH */
+    .publish-guide { background: var(--blue-light); border: 0.5px solid var(--blue-mid); border-radius: var(--radius); padding: 1rem 1.25rem; margin-bottom: 1.5rem; font-size: 13px; color: var(--blue-dark); line-height: 1.7; }
+    .publish-guide strong { display: block; margin-bottom: 4px; font-weight: 500; font-size: 14px; }
+    .publish-guide code { background: rgba(0,0,0,0.06); padding: 1px 5px; border-radius: 4px; font-size: 12px; font-family: monospace; }
+
+    /* DATA.JS EDITOR HINT */
+    .data-hint { background: #fff; border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 1.1rem 1.25rem; }
+    .data-hint-title { font-size: 14px; font-weight: 500; margin-bottom: 8px; }
+    .data-hint p { font-size: 13px; color: var(--text-muted); line-height: 1.6; margin-bottom: 8px; }
+    .code-block { background: #1a1a1a; color: #e8e8e8; border-radius: var(--radius); padding: 1rem; font-family: monospace; font-size: 12px; line-height: 1.7; overflow-x: auto; margin-top: 8px; }
+    .code-block .c-green { color: #5DCAA5; }
+    .code-block .c-amber { color: #FAC775; }
+    .code-block .c-blue { color: #85B7EB; }
+
+    .empty-state { text-align: center; padding: 3rem 1rem; color: var(--text-muted); font-size: 13px; }
+
+    @media (max-width: 480px) { .rac-header { flex-direction: column; } }
+  </style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div class="login-screen" id="loginScreen">
+  <div class="login-card">
+    <div class="login-logo">Reno<span>Lobang</span></div>
+    <div class="login-subtitle">Admin access only</div>
+    <input type="password" id="pwInput" placeholder="Password" onkeydown="if(event.key==='Enter')doLogin()" />
+    <button class="login-btn" onclick="doLogin()">Sign in</button>
+    <div class="login-error" id="loginError">Incorrect password.</div>
+  </div>
+</div>
+
+<!-- ADMIN -->
+<div class="admin-screen" id="adminScreen">
+
+  <nav>
+    <a href="index.html" class="nav-logo">Reno<span>Lobang</span></a>
+    <div class="nav-right">
+      <span class="admin-badge">Admin</span>
+      <button class="logout-btn" onclick="doLogout()">Sign out</button>
+    </div>
+  </nav>
+
+  <div class="admin-main">
+    <div class="page-title">Review queue</div>
+    <div class="page-sub">Submissions received via the public form. Approve to add to <code>data.js</code>, or reject.</div>
+
+    <div class="stats-grid" id="statsGrid"></div>
+
+    <div class="tabs">
+      <button class="tab-btn active" onclick="setTab('pending', this)">Pending</button>
+      <button class="tab-btn" onclick="setTab('published', this)">Published</button>
+      <button class="tab-btn" onclick="setTab('rejected', this)">Rejected</button>
+      <button class="tab-btn" onclick="setTab('guide', this)">How to publish</button>
+    </div>
+
+    <div id="tabContent"></div>
+  </div>
+</div>
+
+<script src="data.js"></script>
+<script>
+  // ── CHANGE THIS PASSWORD ───────────────────────────────────────────────────
+  const ADMIN_PASSWORD = 'renolobang2025';
+
+  // ── LOGIN ─────────────────────────────────────────────────────────────────
+  function doLogin() {
+    if (document.getElementById('pwInput').value === ADMIN_PASSWORD) {
+      document.getElementById('loginScreen').style.display = 'none';
+      document.getElementById('adminScreen').classList.add('show');
+      renderAdmin();
+    } else {
+      document.getElementById('loginError').style.display = 'block';
+    }
+  }
+  function doLogout() {
+    document.getElementById('adminScreen').classList.remove('show');
+    document.getElementById('loginScreen').style.display = 'flex';
+    document.getElementById('pwInput').value = '';
+  }
+
+  // ── LOCAL QUEUE (stored in localStorage for demo; in production use Formspree dashboard) ──
+  function getQueue() {
+    try { return JSON.parse(localStorage.getItem('rl_queue') || '[]'); } catch { return []; }
+  }
+  function saveQueue(q) { localStorage.setItem('rl_queue', JSON.stringify(q)); }
+
+  // Seed with demo submissions if empty
+  function seedDemoIfEmpty() {
+    if (getQueue().length === 0) {
+      saveQueue([
+        { id: 'sub-001', status: 'pending', receivedAt: '2025-01-10', firmName: 'Weiken.com', firmId: 'weiken', sourceType: 'verified', rating: 5, reviewTitle: 'Amazing experience from start to finish', reviewBody: 'We engaged Weiken for our 4-room BTO in Tampines and the experience was exceptional. The designer was patient, creative, and kept us updated throughout the project. Carpentry was top notch, timeline was kept, and they did not try to upsell us unnecessarily. Highly recommend.', tags: 'carpentry, timeline, BTO', authorName: 'Happy Tampines homeowner', email: 'example@email.com', propertyType: 'BTO (new flat)', contractDate: '2024-12' },
+        { id: 'sub-002', status: 'pending', receivedAt: '2025-01-12', firmName: 'ID Factory', firmId: '', sourceType: 'community', rating: 0, reviewTitle: 'Mixed reviews on Reddit', reviewBody: 'Found this on r/singapore – several homeowners mentioned that ID Factory was good on design but their project management left something to be desired. One person said they had to chase for site updates regularly.', tags: 'project management, communication', authorName: 'RenoLobang team', email: 'admin@renolobang.sg', sourceUrl: 'https://reddit.com/r/singapore', sourceAuthor: 'u/various' },
+        { id: 'sub-003', status: 'rejected', receivedAt: '2025-01-08', firmName: 'Spam Firm', firmId: '', sourceType: 'verified', rating: 5, reviewTitle: 'Best firm ever!!!', reviewBody: 'So good so good so good amazing amazing', tags: '', authorName: 'User123', email: 'spam@spam.com', propertyType: '' }
+      ]);
+    }
+  }
+
+  let activeTab = 'pending';
+
+  function setTab(tab, el) {
+    activeTab = tab;
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    el.classList.add('active');
+    renderTabContent();
+  }
+
+  function renderAdmin() {
+    seedDemoIfEmpty();
+    renderStats();
+    renderTabContent();
+  }
+
+  function renderStats() {
+    const q = getQueue();
+    const counts = { pending: 0, published: 0, rejected: 0 };
+    q.forEach(s => counts[s.status] = (counts[s.status] || 0) + 1);
+    const totalPublished = RENOLOBANG_DATA.firms.reduce((s, f) => s + f.reviews.filter(r => r.published).length, 0);
+    document.getElementById('statsGrid').innerHTML = `
+      <div class="stat-card"><span class="stat-card-num" style="color:var(--amber)">${counts.pending}</span><span class="stat-card-label">Pending review</span></div>
+      <div class="stat-card"><span class="stat-card-num" style="color:var(--green)">${totalPublished}</span><span class="stat-card-label">Published in data.js</span></div>
+      <div class="stat-card"><span class="stat-card-num">${RENOLOBANG_DATA.firms.length}</span><span class="stat-card-label">Firms in database</span></div>
+      <div class="stat-card"><span class="stat-card-num" style="color:var(--red)">${counts.rejected}</span><span class="stat-card-label">Rejected</span></div>`;
+  }
+
+  function renderTabContent() {
+    const tab = document.getElementById('tabContent');
+    if (activeTab === 'guide') { tab.innerHTML = renderGuide(); return; }
+    const q = getQueue().filter(s => s.status === activeTab);
+    if (!q.length) { tab.innerHTML = `<div class="empty-state">No ${activeTab} submissions.</div>`; return; }
+    tab.innerHTML = q.map(sub => renderSubCard(sub)).join('');
+  }
+
+  function renderSubCard(sub) {
+    const srcClass = { verified: 'src-verified', unverified: 'src-unverified', community: 'src-community', media: 'src-media' }[sub.sourceType] || '';
+    const srcLabel = { verified: '✓ Verified', unverified: '◑ Unverified', community: '◎ Community', media: '⊞ Media' }[sub.sourceType] || sub.sourceType;
+    const stars = sub.rating ? '★'.repeat(sub.rating) + '☆'.repeat(5 - sub.rating) : 'No rating';
+    const actions = sub.status === 'pending' ? `
+      <button class="action-btn btn-publish" onclick="updateStatus('${sub.id}','published')">Approve</button>
+      <button class="action-btn btn-reject" onclick="updateStatus('${sub.id}','rejected')">Reject</button>
+      <button class="action-btn btn-copy" onclick="copyDataJsSnippet('${sub.id}')">Copy data.js snippet</button>` :
+      sub.status === 'published' ? `<button class="action-btn btn-reject" onclick="updateStatus('${sub.id}','rejected')">Move to rejected</button>` :
+      `<button class="action-btn btn-publish" onclick="updateStatus('${sub.id}','pending')">Move back to pending</button>`;
+    return `<div class="review-admin-card" id="card-${sub.id}">
+      <div class="rac-header">
+        <div>
+          <div class="rac-firm">${sub.firmName}${!sub.firmId ? ' <span style="font-size:11px;color:var(--amber-dark);background:var(--amber-light);border:0.5px solid var(--amber-mid);padding:2px 6px;border-radius:20px;">New firm</span>' : ''}</div>
+          <div class="rac-meta">Received ${sub.receivedAt} · by ${sub.authorName} · ${sub.email}</div>
+        </div>
+        <div style="display:flex;gap:6px;align-items:center;flex-shrink:0">
+          <span class="rac-source ${srcClass}">${srcLabel}</span>
+          <span class="status-badge status-${sub.status}">${sub.status}</span>
+        </div>
+      </div>
+      <div class="rac-title">${sub.reviewTitle}</div>
+      <div class="rac-body">${sub.reviewBody}</div>
+      <div class="rac-details">
+        ${sub.rating ? `<span>Rating: ${stars}</span>` : ''}
+        ${sub.propertyType ? `<span>Property: ${sub.propertyType}</span>` : ''}
+        ${sub.contractDate ? `<span>Completed: ${sub.contractDate}</span>` : ''}
+        ${sub.tags ? `<span>Tags: ${sub.tags}</span>` : ''}
+        ${sub.sourceUrl ? `<span>Source: <a href="${sub.sourceUrl}" target="_blank" style="color:var(--blue-dark)">${sub.sourceUrl.slice(0,50)}</a></span>` : ''}
+      </div>
+      <div class="rac-actions">${actions}</div>
+    </div>`;
+  }
+
+  function updateStatus(id, newStatus) {
+    const q = getQueue();
+    const idx = q.findIndex(s => s.id === id);
+    if (idx > -1) { q[idx].status = newStatus; saveQueue(q); }
+    renderAdmin();
+  }
+
+  function copyDataJsSnippet(id) {
+    const sub = getQueue().find(s => s.id === id);
+    if (!sub) return;
+    const newId = sub.firmId ? sub.firmId.slice(0,2) + '-' + Date.now().toString().slice(-4) : 'xx-' + Date.now().toString().slice(-4);
+    const snippet = `{
+  id: "${newId}",
+  source: "${sub.sourceType}",
+  published: true,
+  date: "${new Date().toISOString().slice(0,10)}",
+  author: "${sub.authorName}",
+  ${sub.sourceUrl ? `sourceUrl: "${sub.sourceUrl}",` : ''}
+  rating: ${sub.rating || null},
+  title: "${sub.reviewTitle.replace(/"/g, '\\"')}",
+  body: "${sub.reviewBody.replace(/"/g, '\\"')}",
+  tags: [${(sub.tags || '').split(',').map(t => `"${t.trim()}"`).join(', ')}]
+}`;
+    navigator.clipboard.writeText(snippet).then(() => alert('Copied to clipboard. Paste this into the reviews array for ' + sub.firmName + ' in data.js.'));
+  }
+
+  function renderGuide() {
+    return `<div class="publish-guide">
+      <strong>How to publish an approved review</strong>
+      1. Click "Copy data.js snippet" on any approved submission.<br>
+      2. Open <code>data.js</code> in your GitHub repository.<br>
+      3. Find the firm in the <code>firms</code> array. If it is a new firm, add a new firm block first.<br>
+      4. Paste the snippet inside that firm's <code>reviews: [ ]</code> array.<br>
+      5. Commit the change. The site updates automatically within seconds.
+    </div>
+    <div class="data-hint">
+      <div class="data-hint-title">Example: adding a review to data.js</div>
+      <p>Find the firm block and add your snippet to its <code>reviews</code> array:</p>
+      <div class="code-block"><span class="c-blue">{</span>
+  <span class="c-amber">id</span>: <span class="c-green">"weiken"</span>,
+  <span class="c-amber">name</span>: <span class="c-green">"Weiken.com"</span>,
+  ...
+  <span class="c-amber">reviews</span>: [
+    <span class="c-blue">{</span> existing review <span class="c-blue">}</span>,
+    <span class="c-blue">{</span>
+      <span class="c-amber">id</span>: <span class="c-green">"wk-005"</span>,
+      <span class="c-amber">source</span>: <span class="c-green">"verified"</span>,
+      <span class="c-amber">published</span>: <span class="c-blue">true</span>,
+      <span class="c-amber">date</span>: <span class="c-green">"2025-01-15"</span>,
+      <span class="c-amber">author</span>: <span class="c-green">"Homeowner, Tampines BTO"</span>,
+      <span class="c-amber">rating</span>: <span class="c-blue">5</span>,
+      <span class="c-amber">title</span>: <span class="c-green">"Amazing experience"</span>,
+      <span class="c-amber">body</span>: <span class="c-green">"Full review text here..."</span>,
+      <span class="c-amber">tags</span>: [<span class="c-green">"carpentry"</span>, <span class="c-green">"BTO"</span>]
+    <span class="c-blue">}</span>
+  ]
+<span class="c-blue">}</span></div>
+    </div>`;
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Submit a Review – RenoLobang</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500&family=DM+Serif+Display&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --green: #1D9E75; --green-dark: #0F6E56; --green-deeper: #085041;
+      --green-light: #E1F5EE; --green-mid: #5DCAA5;
+      --amber-light: #FAEEDA; --amber-dark: #854F0B; --amber-mid: #FAC775;
+      --red-light: #FCEBEB; --red: #E24B4A; --red-dark: #A32D2D; --red-mid: #F09595;
+      --text: #1a1a1a; --text-muted: #666; --text-faint: #999;
+      --border: rgba(0,0,0,0.1); --border-strong: rgba(0,0,0,0.18);
+      --bg: #ffffff; --bg-secondary: #f7f7f5;
+      --radius: 10px; --radius-lg: 14px;
+    }
+    body { font-family: 'DM Sans', sans-serif; font-size: 15px; color: var(--text); background: var(--bg); line-height: 1.6; }
+
+    nav { position: sticky; top: 0; z-index: 100; background: rgba(255,255,255,0.92); backdrop-filter: blur(8px); border-bottom: 0.5px solid var(--border); padding: 0 1.5rem; display: flex; align-items: center; justify-content: space-between; height: 52px; }
+    .nav-logo { font-family: 'DM Serif Display', serif; font-size: 20px; color: var(--text); text-decoration: none; }
+    .nav-logo span { color: var(--green); }
+    .nav-links { display: flex; gap: 1.5rem; align-items: center; }
+    .nav-links a { font-size: 13px; color: var(--text-muted); text-decoration: none; }
+    .nav-links a:hover { color: var(--text); }
+
+    .page-header { background: var(--bg-secondary); border-bottom: 0.5px solid var(--border); padding: 2rem 1.5rem; }
+    .page-header h1 { font-family: 'DM Serif Display', serif; font-size: 28px; font-weight: 400; margin-bottom: 0.4rem; }
+    .page-header p { font-size: 14px; color: var(--text-muted); max-width: 480px; }
+
+    .main { max-width: 640px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+
+    /* FIRM SEARCH */
+    .firm-search-wrap { position: relative; margin-bottom: 0.5rem; }
+    .firm-search-wrap input { width: 100%; padding: 11px 16px; border: 1px solid var(--border-strong); border-radius: var(--radius); font-size: 14px; font-family: 'DM Sans', sans-serif; color: var(--text); background: #fff; outline: none; transition: border-color 0.15s; }
+    .firm-search-wrap input:focus { border-color: var(--green); }
+    .firm-search-wrap input::placeholder { color: var(--text-faint); }
+    .firm-dropdown { position: absolute; top: calc(100% + 4px); left: 0; right: 0; background: #fff; border: 0.5px solid var(--border-strong); border-radius: var(--radius); z-index: 50; overflow: hidden; box-shadow: 0 4px 16px rgba(0,0,0,0.08); display: none; }
+    .firm-dropdown.open { display: block; }
+    .firm-option { padding: 10px 14px; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: space-between; gap: 8px; border-bottom: 0.5px solid var(--border); }
+    .firm-option:last-child { border-bottom: none; }
+    .firm-option:hover { background: var(--bg-secondary); }
+    .firm-option-name { font-weight: 500; }
+    .firm-option-type { font-size: 12px; color: var(--text-muted); }
+    .firm-option-new { font-size: 11px; color: var(--green-dark); background: var(--green-light); border: 0.5px solid var(--green-mid); padding: 2px 8px; border-radius: 20px; white-space: nowrap; }
+    .firm-selected { background: var(--green-light); border: 0.5px solid var(--green-mid); border-radius: var(--radius); padding: 10px 14px; display: none; align-items: center; justify-content: space-between; margin-bottom: 0.5rem; }
+    .firm-selected.show { display: flex; }
+    .firm-selected-name { font-size: 14px; font-weight: 500; color: var(--green-deeper); }
+    .firm-selected-clear { font-size: 12px; color: var(--green-dark); cursor: pointer; text-decoration: underline; background: none; border: none; font-family: 'DM Sans', sans-serif; }
+    .new-firm-note { font-size: 12px; color: var(--text-muted); margin-top: 4px; display: none; }
+    .new-firm-note.show { display: block; }
+
+    /* FORM */
+    .form-section { margin-bottom: 2rem; }
+    .form-section-title { font-size: 13px; font-weight: 500; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 1rem; padding-bottom: 6px; border-bottom: 0.5px solid var(--border); }
+    .field { margin-bottom: 1.25rem; }
+    .field label { display: block; font-size: 13px; font-weight: 500; color: var(--text); margin-bottom: 6px; }
+    .field label .req { color: var(--red); margin-left: 2px; }
+    .field label .hint { font-weight: 400; color: var(--text-muted); margin-left: 4px; font-size: 12px; }
+    .field input, .field textarea, .field select { width: 100%; padding: 10px 14px; border: 1px solid var(--border-strong); border-radius: var(--radius); font-size: 14px; font-family: 'DM Sans', sans-serif; color: var(--text); background: #fff; outline: none; transition: border-color 0.15s; }
+    .field input:focus, .field textarea:focus, .field select:focus { border-color: var(--green); }
+    .field textarea { resize: vertical; min-height: 120px; line-height: 1.6; }
+    .field-note { font-size: 12px; color: var(--text-muted); margin-top: 5px; }
+
+    /* SOURCE TOGGLE */
+    .source-options { display: flex; gap: 8px; flex-wrap: wrap; }
+    .source-btn { padding: 8px 14px; border: 0.5px solid var(--border-strong); border-radius: var(--radius); font-size: 13px; font-family: 'DM Sans', sans-serif; cursor: pointer; background: #fff; color: var(--text-muted); transition: all 0.12s; text-align: left; }
+    .source-btn:hover { border-color: var(--green); }
+    .source-btn.active { background: var(--green-light); border-color: var(--green-mid); color: var(--green-deeper); }
+    .source-btn .sb-title { font-weight: 500; display: block; font-size: 13px; }
+    .source-btn .sb-desc { font-size: 11px; color: var(--text-muted); margin-top: 1px; }
+    .source-btn.active .sb-desc { color: var(--green-dark); }
+
+    .conditional { display: none; }
+    .conditional.show { display: block; }
+
+    /* REDDIT QUOTE PREVIEW */
+    .reddit-preview { background: var(--bg-secondary); border-left: 3px solid var(--border-strong); border-radius: 0 var(--radius) var(--radius) 0; padding: 12px 14px; margin-top: 10px; display: none; }
+    .reddit-preview.show { display: block; }
+    .reddit-preview-quote { font-size: 13px; color: var(--text); line-height: 1.6; font-style: italic; margin-bottom: 6px; white-space: pre-wrap; }
+    .reddit-preview-attr { font-size: 12px; color: var(--text-muted); }
+    .reddit-preview-attr a { color: var(--green-dark); }
+
+    /* RATING */
+    .star-row { display: flex; gap: 6px; }
+    .star-btn { background: none; border: none; font-size: 24px; cursor: pointer; color: var(--text-faint); transition: color 0.1s; padding: 0; line-height: 1; }
+    .star-btn.active { color: #EF9F27; }
+    .star-hint { font-size: 12px; color: var(--text-muted); margin-top: 5px; }
+
+    /* PRIVACY NOTE */
+    .privacy-note { background: var(--amber-light); border: 0.5px solid var(--amber-mid); border-radius: var(--radius); padding: 12px 14px; font-size: 12px; color: var(--amber-dark); margin-bottom: 1.5rem; line-height: 1.6; }
+
+    /* SUBMIT */
+    .submit-btn { width: 100%; padding: 13px; background: var(--green); color: #fff; border: none; border-radius: var(--radius); font-size: 15px; font-family: 'DM Sans', sans-serif; font-weight: 500; cursor: pointer; transition: background 0.15s; }
+    .submit-btn:hover { background: var(--green-dark); }
+    .submit-btn:disabled { background: var(--text-faint); cursor: not-allowed; }
+
+    /* SUCCESS */
+    .success-screen { display: none; text-align: center; padding: 3rem 1rem; }
+    .success-screen.show { display: block; }
+    .success-icon { font-size: 48px; margin-bottom: 1rem; }
+    .success-screen h2 { font-family: 'DM Serif Display', serif; font-size: 24px; font-weight: 400; margin-bottom: 0.5rem; }
+    .success-screen p { font-size: 14px; color: var(--text-muted); margin-bottom: 1.5rem; }
+    .back-btn { display: inline-block; padding: 10px 20px; background: var(--green); color: #fff; text-decoration: none; border-radius: var(--radius); font-size: 14px; font-weight: 500; }
+
+    footer { border-top: 0.5px solid var(--border); padding: 1.5rem; text-align: center; font-size: 12px; color: var(--text-faint); }
+    footer a { color: var(--text-muted); text-decoration: none; }
+
+    @media (max-width: 480px) { .nav-links { display: none; } .source-options { flex-direction: column; } }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="nav-logo">Reno<span>Lobang</span></a>
+  <div class="nav-links">
+    <a href="index.html">Browse</a>
+    <a href="about.html">How it works</a>
+  </div>
+</nav>
+
+<div class="page-header">
+  <h1>Submit a review</h1>
+  <p>Help fellow homeowners make better decisions. All submissions are reviewed before publishing.</p>
+</div>
+
+<main class="main">
+
+  <div class="success-screen" id="successScreen">
+    <div class="success-icon">🎉</div>
+    <h2>Thank you for your submission</h2>
+    <p>Your review has been received and will be reviewed before publishing. This usually takes 1–3 days.</p>
+    <a href="index.html" class="back-btn">Back to browse</a>
+  </div>
+
+  <div id="formWrap">
+
+    <!-- FIRM -->
+    <div class="form-section">
+      <div class="form-section-title">Which firm are you reviewing?</div>
+      <div class="field">
+        <label for="firmSearch">Firm name <span class="req">*</span></label>
+        <div class="firm-search-wrap">
+          <input type="text" id="firmSearch" placeholder="Start typing the firm name..." autocomplete="off" />
+          <div class="firm-dropdown" id="firmDropdown"></div>
+        </div>
+        <div class="firm-selected" id="firmSelected">
+          <span class="firm-selected-name" id="firmSelectedName"></span>
+          <button class="firm-selected-clear" onclick="clearFirm()">Change</button>
+        </div>
+        <div class="new-firm-note" id="newFirmNote">This firm is not yet in our database. We will add it when your review is approved.</div>
+        <input type="hidden" id="firmId" name="firmId" />
+      </div>
+    </div>
+
+    <!-- SOURCE -->
+    <div class="form-section">
+      <div class="form-section-title">What type of review is this?</div>
+      <div class="field">
+        <div class="source-options">
+          <button class="source-btn active" onclick="setSource('verified', this)">
+            <span class="sb-title">✓ Verified</span>
+            <span class="sb-desc">I renovated here, have contract proof</span>
+          </button>
+          <button class="source-btn" onclick="setSource('unverified', this)">
+            <span class="sb-title">◑ Unverified</span>
+            <span class="sb-desc">I renovated here, no contract proof</span>
+          </button>
+          <button class="source-btn" onclick="setSource('community', this)">
+            <span class="sb-title">◎ Community</span>
+            <span class="sb-desc">Sharing from Reddit / Facebook / forum</span>
+          </button>
+          <button class="source-btn" onclick="setSource('media', this)">
+            <span class="sb-title">⊞ Media</span>
+            <span class="sb-desc">News or editorial coverage</span>
+          </button>
+        </div>
+        <input type="hidden" id="sourceType" name="sourceType" value="verified" />
+      </div>
+
+      <!-- Verified / Unverified homeowner fields -->
+      <div class="conditional show" id="homeownerFields">
+        <div class="field">
+          <label for="propertyType">Property type <span class="hint">(optional)</span></label>
+          <select id="propertyType" name="propertyType">
+            <option value="">Select...</option>
+            <option>BTO (new flat)</option>
+            <option>HDB resale</option>
+            <option>Condo</option>
+            <option>Landed</option>
+            <option>Commercial / office</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Approximate renovation completion date <span class="hint">(optional)</span></label>
+          <div style="display:flex;gap:8px;">
+            <select id="contractMonth" name="contractMonth" style="flex:1">
+              <option value="">Month</option>
+              <option value="01">January</option>
+              <option value="02">February</option>
+              <option value="03">March</option>
+              <option value="04">April</option>
+              <option value="05">May</option>
+              <option value="06">June</option>
+              <option value="07">July</option>
+              <option value="08">August</option>
+              <option value="09">September</option>
+              <option value="10">October</option>
+              <option value="11">November</option>
+              <option value="12">December</option>
+            </select>
+            <select id="contractYear" name="contractYear" style="flex:1"></select>
+          </div>
+        </div>
+        <div class="conditional show" id="contractUploadWrap">
+          <div class="field">
+            <label for="contractFile">Contract document <span class="hint">(optional – upload to confirm Verified status)</span></label>
+            <input type="file" id="contractFile" name="contractFile" accept=".pdf,.jpg,.jpeg,.png" />
+            <div class="field-note" id="contractNote">PDF or image. Your personal details will not be published.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Community fields -->
+      <div class="conditional" id="communityFields">
+        <div class="field">
+          <label for="redditUsername">Reddit / forum username <span class="hint">(optional)</span></label>
+          <input type="text" id="redditUsername" name="redditUsername" placeholder="e.g. u/username" />
+        </div>
+        <div class="field">
+          <label for="sourceUrl">Link to original post <span class="hint">(optional – paste if still available)</span></label>
+          <input type="url" id="sourceUrl" name="sourceUrl" placeholder="https://reddit.com/r/..." />
+          <div class="field-note">If the post gets deleted, the review will still live on RenoLobang with the original author credited.</div>
+        </div>
+        <div class="field">
+          <label for="originalPostDate">Date of original post <span class="hint">(optional)</span></label>
+          <input type="date" id="originalPostDate" name="originalPostDate" />
+        </div>
+      </div>
+
+      <!-- Media fields -->
+      <div class="conditional" id="mediaFields">
+        <div class="field">
+          <label for="mediaUrl">Link to article <span class="req">*</span></label>
+          <input type="url" id="mediaUrl" name="mediaUrl" placeholder="https://..." />
+        </div>
+        <div class="field">
+          <label for="mediaSource">Publication name <span class="req">*</span></label>
+          <input type="text" id="mediaSource" name="mediaSource" placeholder="e.g. Home & Decor Singapore, CNA" />
+        </div>
+      </div>
+    </div>
+
+    <!-- REVIEW CONTENT -->
+    <div class="form-section">
+      <div class="form-section-title" id="reviewSectionTitle">Your review</div>
+
+      <!-- Rating – hidden for community/media -->
+      <div class="field conditional show" id="ratingField">
+        <label>Rating <span class="req">*</span></label>
+        <div class="star-row" id="starRow">
+          <button class="star-btn" data-val="1" onclick="setRating(1)" type="button">★</button>
+          <button class="star-btn" data-val="2" onclick="setRating(2)" type="button">★</button>
+          <button class="star-btn" data-val="3" onclick="setRating(3)" type="button">★</button>
+          <button class="star-btn" data-val="4" onclick="setRating(4)" type="button">★</button>
+          <button class="star-btn" data-val="5" onclick="setRating(5)" type="button">★</button>
+        </div>
+        <div class="star-hint" id="starHint">Tap to rate</div>
+        <input type="hidden" id="ratingVal" name="rating" value="" />
+      </div>
+
+      <div class="field">
+        <label for="reviewBody" id="reviewBodyLabel">Review <span class="req">*</span></label>
+        <textarea id="reviewBody" name="reviewBody" placeholder="Share your experience – what went well, what could have been better, any advice for others..." rows="6"></textarea>
+        <div class="field-note" id="reviewBodyNote">Be specific – details help other homeowners the most.</div>
+      </div>
+
+      <!-- Reddit preview – shown when community source and body has content -->
+      <div class="reddit-preview" id="redditPreview">
+        <div class="reddit-preview-quote" id="redditPreviewQuote"></div>
+        <div class="reddit-preview-attr" id="redditPreviewAttr"></div>
+      </div>
+
+      <div class="field">
+        <label for="reviewTitle">Review title <span class="hint">(optional – we will generate one if left blank)</span></label>
+        <input type="text" id="reviewTitle" name="reviewTitle" placeholder="e.g. Great design, minor timeline issues" maxlength="100" />
+      </div>
+
+      <div class="field">
+        <label for="reviewTags">Tags <span class="hint">(optional, comma-separated)</span></label>
+        <input type="text" id="reviewTags" name="reviewTags" placeholder="e.g. carpentry, timeline, communication" />
+      </div>
+    </div>
+
+    <!-- YOUR DETAILS -->
+    <div class="form-section" id="yourDetailsSection">
+      <div class="form-section-title">Your details</div>
+      <div class="field">
+        <label for="authorName">Display name <span class="hint">(optional)</span></label>
+        <input type="text" id="authorName" name="authorName" placeholder="Leave blank to post as Anonymous homeowner" />
+        <div class="field-note">This appears on the review. Do not use your full real name.</div>
+      </div>
+      <div class="field">
+        <label for="authorEmail">Your email <span class="req">*</span></label>
+        <input type="email" id="authorEmail" name="authorEmail" placeholder="For us to follow up if needed" />
+        <div class="field-note">Your email will never be published or shared.</div>
+      </div>
+    </div>
+
+    <div class="privacy-note">
+      All submissions are reviewed by RenoLobang before publishing. We may contact you for verification. Your personal details will never be published. By submitting you confirm this review is honest and accurate.
+    </div>
+
+    <!-- FORMSPREE: replace YOUR_FORM_ID after signing up at formspree.io -->
+    <form id="reviewForm" action="https://formspree.io/f/xgoqgjkp" method="POST" style="display:none">
+      <input type="hidden" name="firmId" id="ff_firmId" />
+      <input type="hidden" name="firmName" id="ff_firmName" />
+      <input type="hidden" name="sourceType" id="ff_sourceType" />
+      <input type="hidden" name="rating" id="ff_rating" />
+      <input type="hidden" name="reviewTitle" id="ff_title" />
+      <input type="hidden" name="reviewBody" id="ff_body" />
+      <input type="hidden" name="tags" id="ff_tags" />
+      <input type="hidden" name="authorName" id="ff_author" />
+      <input type="hidden" name="email" id="ff_email" />
+      <input type="hidden" name="contractDate" id="ff_contractDate" />
+      <input type="hidden" name="propertyType" id="ff_propertyType" />
+      <input type="hidden" name="sourceUrl" id="ff_sourceUrl" />
+      <input type="hidden" name="redditUsername" id="ff_redditUsername" />
+      <input type="hidden" name="originalPostDate" id="ff_originalPostDate" />
+      <input type="hidden" name="mediaUrl" id="ff_mediaUrl" />
+      <input type="hidden" name="mediaSource" id="ff_mediaSource" />
+    </form>
+
+    <button class="submit-btn" id="submitBtn" onclick="handleSubmit()" type="button">Submit review</button>
+  </div>
+
+</main>
+
+<footer>
+  <p>© 2025 RenoLobang · <a href="index.html">Browse reviews</a> · <a href="about.html">About</a></p>
+</footer>
+
+<script src="data.js"></script>
+<script>
+  let selectedFirmId = null;
+  let selectedFirmName = null;
+  let isNewFirm = false;
+  let currentSource = 'verified';
+  let currentRating = 0;
+  const starLabels = ['', 'Poor', 'Below average', 'Average', 'Good', 'Excellent'];
+
+  // ── POPULATE YEAR DROPDOWN ────────────────────────────────────────────────
+  const yearSel = document.getElementById('contractYear');
+  const currentYear = new Date().getFullYear();
+  for (let y = currentYear; y >= currentYear - 10; y--) {
+    const opt = document.createElement('option');
+    opt.value = y; opt.textContent = y;
+    yearSel.appendChild(opt);
+  }
+  const blankOpt = document.createElement('option');
+  blankOpt.value = ''; blankOpt.textContent = 'Year'; blankOpt.selected = true;
+  yearSel.insertBefore(blankOpt, yearSel.firstChild);
+  const firmSearchEl = document.getElementById('firmSearch');
+  const firmDropdown = document.getElementById('firmDropdown');
+
+  firmSearchEl.addEventListener('input', () => {
+    const q = firmSearchEl.value.trim().toLowerCase();
+    if (!q) { firmDropdown.classList.remove('open'); return; }
+    const matches = RENOLOBANG_DATA.firms.filter(f => f.name.toLowerCase().includes(q));
+    let html = matches.map(f => `
+      <div class="firm-option" onclick="selectFirm('${f.id}', '${f.name.replace(/'/g, "\\'")}', false)">
+        <div>
+          <div class="firm-option-name">${f.name}</div>
+          <div class="firm-option-type">${f.types.join(' · ')}</div>
+        </div>
+      </div>`).join('');
+    html += `<div class="firm-option" onclick="selectFirm('', '${firmSearchEl.value.replace(/'/g, "\\'")}', true)">
+      <div>
+        <div class="firm-option-name">${firmSearchEl.value}</div>
+        <div class="firm-option-type">Not in our database yet</div>
+      </div>
+      <span class="firm-option-new">Add new firm</span>
+    </div>`;
+    firmDropdown.innerHTML = html;
+    firmDropdown.classList.add('open');
+  });
+
+  document.addEventListener('click', e => {
+    if (!e.target.closest('.firm-search-wrap')) firmDropdown.classList.remove('open');
+  });
+
+  function selectFirm(id, name, isNew) {
+    selectedFirmId = id; selectedFirmName = name; isNewFirm = isNew;
+    firmDropdown.classList.remove('open');
+    firmSearchEl.style.display = 'none';
+    document.getElementById('firmSelected').classList.add('show');
+    document.getElementById('firmSelectedName').textContent = name;
+    document.getElementById('newFirmNote').classList.toggle('show', isNew);
+  }
+
+  function clearFirm() {
+    selectedFirmId = null; selectedFirmName = null; isNewFirm = false;
+    firmSearchEl.value = ''; firmSearchEl.style.display = '';
+    document.getElementById('firmSelected').classList.remove('show');
+    document.getElementById('newFirmNote').classList.remove('show');
+  }
+
+  // ── SOURCE ────────────────────────────────────────────────────────────────
+  function setSource(source, el) {
+    currentSource = source;
+    document.getElementById('sourceType').value = source;
+    document.querySelectorAll('.source-btn').forEach(b => b.classList.remove('active'));
+    el.classList.add('active');
+
+    const isHomeowner = source === 'verified' || source === 'unverified';
+    const isCommunity = source === 'community';
+    const isMedia = source === 'media';
+
+    document.getElementById('homeownerFields').classList.toggle('show', isHomeowner);
+    document.getElementById('communityFields').classList.toggle('show', isCommunity);
+    document.getElementById('mediaFields').classList.toggle('show', isMedia);
+    document.getElementById('ratingField').classList.toggle('show', !isMedia);
+    document.getElementById('yourDetailsSection').style.display = isCommunity ? 'none' : '';
+
+    if (source === 'unverified') {
+      document.getElementById('contractNote').textContent = 'No contract? That is fine – your review will be marked Unverified. Uploading a copy upgrades it to Verified.';
+    } else {
+      document.getElementById('contractNote').textContent = 'PDF or image. Your personal details will not be published.';
+    }
+
+    // Update review section label
+    document.getElementById('reviewSectionTitle').textContent = isCommunity ? 'Original comment' : isMedia ? 'Summary' : 'Your review';
+    document.getElementById('reviewBodyLabel').innerHTML = isCommunity
+      ? 'Paste the original comment <span class="req">*</span>'
+      : isMedia ? 'Summary <span class="req">*</span>'
+      : 'Review <span class="req">*</span>';
+    document.getElementById('reviewBodyNote').textContent = isCommunity
+      ? 'Paste the full original Reddit or forum comment here. It will display as a quote attributed to the original author.'
+      : isMedia ? 'A brief summary of what the article says about this firm.'
+      : 'Be specific – details help other homeowners the most.';
+
+    updateRedditPreview();
+  }
+
+  // ── REDDIT PREVIEW ────────────────────────────────────────────────────────
+  function updateRedditPreview() {
+    if (currentSource !== 'community') { document.getElementById('redditPreview').classList.remove('show'); return; }
+    const body = document.getElementById('reviewBody').value.trim();
+    const username = document.getElementById('redditUsername').value.trim();
+    const url = document.getElementById('sourceUrl').value.trim();
+    if (!body) { document.getElementById('redditPreview').classList.remove('show'); return; }
+    document.getElementById('redditPreviewQuote').textContent = body;
+    const attr = username ? `— ${username}` : '— Anonymous';
+    const link = url ? ` · <a href="${url}" target="_blank">View original post ↗</a>` : ' · Original post (link unavailable)';
+    document.getElementById('redditPreviewAttr').innerHTML = attr + link;
+    document.getElementById('redditPreview').classList.add('show');
+  }
+
+  document.getElementById('reviewBody').addEventListener('input', updateRedditPreview);
+  document.getElementById('redditUsername') && document.getElementById('redditUsername').addEventListener('input', updateRedditPreview);
+  document.getElementById('sourceUrl').addEventListener('input', updateRedditPreview);
+
+  // ── RATING ────────────────────────────────────────────────────────────────
+  function setRating(val) {
+    currentRating = val;
+    document.getElementById('ratingVal').value = val;
+    document.querySelectorAll('.star-btn').forEach(b => b.classList.toggle('active', parseInt(b.dataset.val) <= val));
+    document.getElementById('starHint').textContent = starLabels[val];
+  }
+
+  // ── SUBMIT ────────────────────────────────────────────────────────────────
+  function handleSubmit() {
+    if (!selectedFirmName) { alert('Please select or enter a firm name.'); return; }
+    const body = document.getElementById('reviewBody').value.trim();
+    if (!body) { alert('Please write your review.'); return; }
+    if ((currentSource === 'verified' || currentSource === 'unverified') && currentRating === 0) { alert('Please select a star rating.'); return; }
+    if (currentSource !== 'community') {
+      const email = document.getElementById('authorEmail').value.trim();
+      if (!email) { alert('Please enter your email so we can follow up if needed.'); return; }
+      if (currentSource === 'media' && !document.getElementById('mediaUrl').value.trim()) { alert('Please enter the article link.'); return; }
+    }
+
+    // Auto-generate title from first sentence if left blank
+    let title = document.getElementById('reviewTitle').value.trim();
+    if (!title) {
+      const firstSentence = body.split(/[.!?]/)[0].trim();
+      title = firstSentence.length > 80 ? firstSentence.slice(0, 77) + '...' : firstSentence;
+    }
+
+    // Default display name
+    let authorName = document.getElementById('authorName') ? document.getElementById('authorName').value.trim() : '';
+    if (!authorName && currentSource !== 'community') authorName = 'Anonymous homeowner';
+
+    document.getElementById('ff_firmId').value = selectedFirmId || '';
+    document.getElementById('ff_firmName').value = selectedFirmName || '';
+    document.getElementById('ff_sourceType').value = currentSource;
+    document.getElementById('ff_rating').value = currentRating || '';
+    document.getElementById('ff_title').value = title;
+    document.getElementById('ff_body').value = body;
+    document.getElementById('ff_tags').value = document.getElementById('reviewTags').value;
+    document.getElementById('ff_author').value = authorName;
+    document.getElementById('ff_email').value = document.getElementById('authorEmail') ? document.getElementById('authorEmail').value : '';
+    const month = document.getElementById('contractMonth').value;
+    const year = document.getElementById('contractYear').value;
+    document.getElementById('ff_contractDate').value = (year && month) ? `${year}-${month}` : (year || '');
+    document.getElementById('ff_propertyType').value = document.getElementById('propertyType').value;
+    document.getElementById('ff_sourceUrl').value = document.getElementById('sourceUrl').value;
+    document.getElementById('ff_redditUsername').value = document.getElementById('redditUsername').value;
+    document.getElementById('ff_originalPostDate').value = document.getElementById('originalPostDate').value;
+    document.getElementById('ff_mediaUrl').value = document.getElementById('mediaUrl').value;
+    document.getElementById('ff_mediaSource').value = document.getElementById('mediaSource').value;
+
+    const btn = document.getElementById('submitBtn');
+    btn.disabled = true; btn.textContent = 'Submitting...';
+
+    const form = document.getElementById('reviewForm');
+    fetch(form.action, {
+      method: 'POST',
+      body: new FormData(form),
+      headers: { 'Accept': 'application/json' }
+    }).then(r => {
+      if (r.ok) {
+        document.getElementById('formWrap').style.display = 'none';
+        document.getElementById('successScreen').classList.add('show');
+      } else {
+        btn.disabled = false; btn.textContent = 'Submit review';
+        alert('Something went wrong. Please try again.');
+      }
+    }).catch(() => {
+      btn.disabled = false; btn.textContent = 'Submit review';
+      alert('Something went wrong. Please check your connection and try again.');
+    });
+  }
+</script>
+</body>
+</html>

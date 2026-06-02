@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RenoLobang – Honest Reviews of Singapore Interior Designers</title>
+  <meta name="description" content="Independent, homeowner-driven reviews of Singapore interior designers. No paid placements. No conflicts of interest." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500&family=DM+Serif+Display&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --green: #1D9E75; --green-dark: #0F6E56; --green-deeper: #085041;
+      --green-light: #E1F5EE; --green-mid: #5DCAA5;
+      --blue-light: #E6F1FB; --blue: #378ADD; --blue-dark: #185FA5; --blue-mid: #85B7EB;
+      --amber-light: #FAEEDA; --amber: #EF9F27; --amber-dark: #854F0B; --amber-mid: #FAC775;
+      --text: #1a1a1a; --text-muted: #666; --text-faint: #999;
+      --border: rgba(0,0,0,0.1); --border-strong: rgba(0,0,0,0.18);
+      --bg: #ffffff; --bg-secondary: #f7f7f5;
+      --radius: 10px; --radius-lg: 14px;
+    }
+    html { scroll-behavior: smooth; }
+    body { font-family: 'DM Sans', sans-serif; font-size: 15px; color: var(--text); background: var(--bg); line-height: 1.6; min-height: 100vh; }
+
+    nav { position: sticky; top: 0; z-index: 100; background: rgba(255,255,255,0.92); backdrop-filter: blur(8px); border-bottom: 0.5px solid var(--border); padding: 0 1.5rem; display: flex; align-items: center; justify-content: space-between; height: 52px; }
+    .nav-logo { font-family: 'DM Serif Display', serif; font-size: 20px; color: var(--text); text-decoration: none; }
+    .nav-logo span { color: var(--green); }
+    .nav-links { display: flex; gap: 1.5rem; align-items: center; }
+    .nav-links a { font-size: 13px; color: var(--text-muted); text-decoration: none; transition: color 0.15s; }
+    .nav-links a:hover { color: var(--text); }
+    .nav-submit { background: var(--green) !important; color: #fff !important; padding: 6px 14px; border-radius: 20px; }
+    .nav-submit:hover { background: var(--green-dark) !important; }
+
+    .indie-banner { background: #1a1a1a; color: #fff; padding: 9px 1.5rem; text-align: center; font-size: 12px; display: flex; align-items: center; justify-content: center; gap: 1.5rem; flex-wrap: wrap; }
+    .indie-pill { display: inline-flex; align-items: center; gap: 5px; color: rgba(255,255,255,0.75); }
+    .indie-pill .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green-mid); flex-shrink: 0; }
+
+    .hero { background: var(--bg-secondary); border-bottom: 0.5px solid var(--border); padding: 3rem 1.5rem 2.5rem; text-align: center; }
+    .hero-eyebrow { display: inline-block; font-size: 11px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--green-dark); background: var(--green-light); border: 0.5px solid var(--green-mid); padding: 4px 10px; border-radius: 20px; margin-bottom: 1rem; }
+    .hero h1 { font-family: 'DM Serif Display', serif; font-size: clamp(26px, 5vw, 40px); font-weight: 400; color: var(--text); letter-spacing: -0.5px; line-height: 1.2; margin-bottom: 0.75rem; max-width: 540px; margin-left: auto; margin-right: auto; }
+    .hero h1 em { color: var(--green); font-style: normal; }
+    .hero-sub { font-size: 14px; color: var(--text-muted); margin-bottom: 2rem; max-width: 420px; margin-left: auto; margin-right: auto; }
+
+    .search-wrap { display: flex; gap: 8px; max-width: 500px; margin: 0 auto 1.75rem; }
+    .search-wrap input { flex: 1; padding: 11px 16px; border: 1px solid var(--border-strong); border-radius: var(--radius); font-size: 14px; font-family: 'DM Sans', sans-serif; color: var(--text); background: #fff; outline: none; transition: border-color 0.15s; }
+    .search-wrap input:focus { border-color: var(--green); }
+    .search-wrap input::placeholder { color: var(--text-faint); }
+    .search-wrap button { padding: 11px 20px; background: var(--green); color: #fff; border: none; border-radius: var(--radius); font-size: 14px; font-family: 'DM Sans', sans-serif; font-weight: 500; cursor: pointer; transition: background 0.15s; }
+    .search-wrap button:hover { background: var(--green-dark); }
+
+    .stats-row { display: flex; justify-content: center; gap: 2.5rem; flex-wrap: wrap; }
+    .stat-item { text-align: center; }
+    .stat-num { font-family: 'DM Serif Display', serif; font-size: 26px; color: var(--text); display: block; }
+    .stat-label { font-size: 12px; color: var(--text-muted); }
+
+    .trust-section { border-bottom: 0.5px solid var(--border); padding: 1.5rem; }
+    .trust-grid { max-width: 740px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; }
+    .trust-card { border: 0.5px solid var(--border); border-radius: var(--radius); padding: 1rem; background: #fff; }
+    .trust-icon { font-size: 18px; margin-bottom: 6px; }
+    .trust-card-title { font-size: 13px; font-weight: 500; color: var(--text); margin-bottom: 3px; }
+    .trust-card-desc { font-size: 12px; color: var(--text-muted); line-height: 1.5; }
+
+    .main { max-width: 740px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+    .list-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem; flex-wrap: wrap; gap: 10px; }
+    .list-title { font-size: 14px; font-weight: 500; color: var(--text-muted); }
+    .filters { display: flex; gap: 6px; flex-wrap: wrap; }
+    .filter-btn { padding: 5px 13px; font-size: 12px; font-family: 'DM Sans', sans-serif; border: 0.5px solid var(--border-strong); border-radius: 20px; background: #fff; color: var(--text-muted); cursor: pointer; transition: all 0.12s; }
+    .filter-btn:hover { border-color: var(--green); color: var(--green-dark); }
+    .filter-btn.active { background: var(--green-light); border-color: var(--green-mid); color: var(--green-deeper); }
+
+    .legend { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 1.25rem; padding: 10px 14px; background: var(--bg-secondary); border-radius: var(--radius); border: 0.5px solid var(--border); }
+    .legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-muted); }
+    .legend-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+    .firm-card { background: #fff; border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 1.1rem 1.25rem; margin-bottom: 10px; cursor: pointer; transition: border-color 0.15s, box-shadow 0.15s; text-decoration: none; display: block; color: inherit; }
+    .firm-card:hover { border-color: var(--green-mid); box-shadow: 0 2px 12px rgba(29,158,117,0.08); }
+    .firm-top { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 10px; }
+    .firm-avatar { width: 42px; height: 42px; border-radius: var(--radius); background: var(--green-light); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 500; color: var(--green-deeper); flex-shrink: 0; border: 0.5px solid var(--green-mid); }
+    .firm-info { flex: 1; min-width: 0; }
+    .firm-name { font-size: 15px; font-weight: 500; color: var(--text); margin-bottom: 2px; }
+    .firm-type { font-size: 12px; color: var(--text-muted); }
+    .firm-count { text-align: right; flex-shrink: 0; }
+    .count-num { font-family: 'DM Serif Display', serif; font-size: 22px; color: var(--text); display: block; line-height: 1; }
+    .count-label { font-size: 11px; color: var(--text-faint); }
+    .firm-snippet { font-size: 13px; color: var(--text-muted); line-height: 1.55; margin-bottom: 10px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .firm-badges { display: flex; gap: 6px; flex-wrap: wrap; padding-top: 10px; border-top: 0.5px solid var(--border); }
+    .badge { font-size: 11px; padding: 3px 9px; border-radius: 20px; }
+    .badge-verified { background: var(--green-light); color: var(--green-deeper); border: 0.5px solid var(--green-mid); }
+    .badge-unverified { background: #F1EFE8; color: #444441; border: 0.5px solid #B4B2A9; }
+    .badge-community { background: var(--blue-light); color: var(--blue-dark); border: 0.5px solid var(--blue-mid); }
+    .badge-media { background: var(--amber-light); color: var(--amber-dark); border: 0.5px solid var(--amber-mid); }
+    .badge-affiliate { background: var(--bg-secondary); color: var(--text-muted); border: 0.5px solid var(--border-strong); }
+
+    .no-results { text-align: center; padding: 4rem 1rem; color: var(--text-muted); font-size: 14px; }
+
+    .submit-banner { margin-top: 2rem; background: var(--green-light); border: 0.5px solid var(--green-mid); border-radius: var(--radius-lg); padding: 1.25rem 1.5rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+    .banner-text strong { display: block; font-size: 15px; font-weight: 500; color: var(--green-deeper); margin-bottom: 3px; }
+    .banner-text p { font-size: 13px; color: var(--green-dark); }
+    .banner-btn { background: var(--green); color: #fff; border: none; border-radius: var(--radius); padding: 10px 20px; font-size: 13px; font-family: 'DM Sans', sans-serif; font-weight: 500; cursor: pointer; transition: background 0.15s; white-space: nowrap; text-decoration: none; display: inline-block; }
+    .banner-btn:hover { background: var(--green-dark); }
+
+    footer { border-top: 0.5px solid var(--border); padding: 1.5rem; text-align: center; font-size: 12px; color: var(--text-faint); }
+    footer a { color: var(--text-muted); text-decoration: none; }
+    footer a:hover { color: var(--text); }
+
+    @media (max-width: 480px) {
+      .nav-links { display: none; }
+      .search-wrap { flex-direction: column; }
+      .indie-banner { gap: 0.75rem; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="indie-banner">
+  <span class="indie-pill"><span class="dot"></span>We do not accept payment from ID firms</span>
+  <span class="indie-pill"><span class="dot"></span>No sponsored rankings or paid placements</span>
+  <span class="indie-pill"><span class="dot"></span>Reviews are never edited by firms</span>
+</div>
+
+<nav>
+  <a href="index.html" class="nav-logo">Reno<span>Lobang</span></a>
+  <div class="nav-links">
+    <a href="index.html">Browse</a>
+    <a href="about.html">How it works</a>
+    <a href="submit.html" class="nav-submit">Submit a review</a>
+  </div>
+</nav>
+
+<section class="hero">
+  <div class="hero-eyebrow">By homeowners, for homeowners</div>
+  <h1>Find an interior designer you can <em>actually</em> trust</h1>
+  <p class="hero-sub">Real reviews from Singapore homeowners. No paid placements. No lead generation fees. No conflicts of interest.</p>
+  <div class="search-wrap">
+    <input type="text" id="searchInput" placeholder="Search by firm name, e.g. Weiken, Fineline..." />
+    <button onclick="doSearch()">Search</button>
+  </div>
+  <div class="stats-row">
+    <div class="stat-item"><span class="stat-num" id="statFirms">–</span><span class="stat-label">firms reviewed</span></div>
+    <div class="stat-item"><span class="stat-num" id="statReviews">–</span><span class="stat-label">total reviews</span></div>
+    <div class="stat-item"><span class="stat-num">$0</span><span class="stat-label">taken from ID firms</span></div>
+  </div>
+</section>
+
+<section class="trust-section">
+  <div class="trust-grid">
+    <div class="trust-card">
+      <div class="trust-icon">🚫</div>
+      <div class="trust-card-title">No paid placements</div>
+      <div class="trust-card-desc">Firms cannot pay to appear higher, get a badge, or remove negative reviews.</div>
+    </div>
+    <div class="trust-card">
+      <div class="trust-icon">🏷️</div>
+      <div class="trust-card-title">Every source is labelled</div>
+      <div class="trust-card-desc">You always know if a review is verified, from Reddit, or from a news article.</div>
+    </div>
+    <div class="trust-card">
+      <div class="trust-icon">✅</div>
+      <div class="trust-card-title">Verified with contract proof</div>
+      <div class="trust-card-desc">Verified reviews are cross-checked against the homeowner's renovation contract.</div>
+    </div>
+    <div class="trust-card">
+      <div class="trust-icon">🔗</div>
+      <div class="trust-card-title">Affiliates disclosed</div>
+      <div class="trust-card-desc">Where firms are related or affiliated, we note it clearly on their profile.</div>
+    </div>
+  </div>
+</section>
+
+<main class="main">
+  <div class="list-header">
+    <span class="list-title" id="listLabel">Showing all firms</span>
+    <div class="filters">
+      <button class="filter-btn active" onclick="setFilter('all', this)">All</button>
+      <button class="filter-btn" onclick="setFilter('verified', this)">Verified</button>
+      <button class="filter-btn" onclick="setFilter('unverified', this)">Unverified</button>
+      <button class="filter-btn" onclick="setFilter('community', this)">Community</button>
+      <button class="filter-btn" onclick="setFilter('media', this)">Media cited</button>
+    </div>
+  </div>
+
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div>Verified – homeowner submitted with contract proof</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#888780"></div>Unverified – homeowner submitted, no contract proof</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--blue)"></div>Community – Reddit, Facebook, HardwareZone</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--amber)"></div>Media – news or editorial coverage</div>
+  </div>
+
+  <div id="firmList"></div>
+
+  <div class="submit-banner">
+    <div class="banner-text">
+      <strong>Renovated recently?</strong>
+      <p>Share your experience and help the next homeowner make a better decision.</p>
+    </div>
+    <a href="submit.html" class="banner-btn">Submit a review →</a>
+  </div>
+</main>
+
+<footer>
+  <p>© 2025 RenoLobang · Independent, homeowner-driven · <a href="about.html">About</a> · <a href="submit.html">Submit a review</a></p>
+</footer>
+
+<script src="data.js"></script>
+<script>
+  let activeFilter = 'all';
+  let searchTerm = '';
+
+  function getSnippet(firm) {
+    const reviews = firm.reviews.filter(r => r.published);
+    if (!reviews.length) return 'No reviews yet.';
+    return reviews[0].body.slice(0, 160) + (reviews[0].body.length > 160 ? '...' : '');
+  }
+
+  function render() {
+    const firms = getAllFirms();
+    const filtered = firms.filter(f => {
+      const c = countBySource(f);
+      const matchSearch = f.name.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchFilter =
+        activeFilter === 'all' ||
+        (activeFilter === 'verified' && c.verified > 0) ||
+        (activeFilter === 'unverified' && c.unverified > 0) ||
+        (activeFilter === 'community' && c.community > 0) ||
+        (activeFilter === 'media' && c.media > 0);
+      return matchSearch && matchFilter;
+    }).sort((a, b) => countBySource(b).total - countBySource(a).total);
+
+    document.getElementById('statFirms').textContent = firms.length;
+    document.getElementById('statReviews').textContent = firms.reduce((s, f) => s + countBySource(f).total, 0);
+    document.getElementById('listLabel').textContent = searchTerm
+      ? `${filtered.length} result${filtered.length !== 1 ? 's' : ''} for "${searchTerm}"`
+      : `Showing all firms (${filtered.length})`;
+
+    const list = document.getElementById('firmList');
+    if (!filtered.length) {
+      list.innerHTML = `<div class="no-results"><p>No firms found. <a href="submit.html" style="color:var(--green)">Be the first to submit a review.</a></p></div>`;
+      return;
+    }
+
+    list.innerHTML = filtered.map(f => {
+      const c = countBySource(f);
+      const affiliateNames = (f.affiliates || []).map(aid => {
+        const af = RENOLOBANG_DATA.firms.find(x => x.id === aid);
+        return af ? af.name : null;
+      }).filter(Boolean);
+
+      return `<a class="firm-card" href="firm.html?id=${f.id}">
+        <div class="firm-top">
+          <div class="firm-avatar">${f.initials}</div>
+          <div class="firm-info">
+            <div class="firm-name">${f.name}</div>
+            <div class="firm-type">${f.types.join(' · ')}</div>
+          </div>
+          <div class="firm-count">
+            <span class="count-num">${c.total}</span>
+            <span class="count-label">reviews</span>
+          </div>
+        </div>
+        <div class="firm-snippet">${getSnippet(f)}</div>
+        <div class="firm-badges">
+          ${c.verified > 0 ? `<span class="badge badge-verified">✓ ${c.verified} verified</span>` : ''}
+          ${c.unverified > 0 ? `<span class="badge badge-unverified">◑ ${c.unverified} unverified</span>` : ''}
+          ${c.community > 0 ? `<span class="badge badge-community">◎ ${c.community} community</span>` : ''}
+          ${c.media > 0 ? `<span class="badge badge-media">⊞ ${c.media} media</span>` : ''}
+          ${affiliateNames.map(n => `<span class="badge badge-affiliate">Related: ${n}</span>`).join('')}
+        </div>
+      </a>`;
+    }).join('');
+  }
+
+  function doSearch() { searchTerm = document.getElementById('searchInput').value.trim(); render(); }
+  function setFilter(f, el) {
+    activeFilter = f;
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    el.classList.add('active');
+    render();
+  }
+  document.getElementById('searchInput').addEventListener('keydown', e => { if (e.key === 'Enter') doSearch(); });
+  render();
+</script>
+</body>
+</html>
