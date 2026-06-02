@@ -24,7 +24,15 @@ exports.handler = async (event) => {
   // Basic validation
   if (!body.firmName) return { statusCode: 400, body: JSON.stringify({ error: 'Firm name is required' }) };
   if (!body.reviewBody) return { statusCode: 400, body: JSON.stringify({ error: 'Review body is required' }) };
-  if (!body.authorEmail) return { statusCode: 400, body: JSON.stringify({ error: 'Email is required' }) };
+  if (
+  (body.sourceType === 'verified' || body.sourceType === 'unverified') &&
+  !body.authorEmail
+) {
+  return {
+    statusCode: 400,
+    body: JSON.stringify({ error: 'Email is required' })
+  };
+}
   if (!body.sourceType) return { statusCode: 400, body: JSON.stringify({ error: 'Source type is required' }) };
 
   // Handle image upload if provided
@@ -53,7 +61,7 @@ exports.handler = async (event) => {
     review_body: body.reviewBody,
     tags: body.tags || null,
     author_name: body.authorName || null,
-    author_email: body.authorEmail,
+    author_email: body.authorEmail || null,
     property_type: body.propertyType || null,
     contract_month: body.contractMonth || null,
     contract_year: body.contractYear || null,
