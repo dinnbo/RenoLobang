@@ -39,6 +39,34 @@ const RENOLOBANG_DATA = {
         tags: []
       }
     ]
+  },
+  {
+    id: "ciseern-by-designer-furnishings-pte-ltd",
+    name: "Ciseern by Designer Furnishings Pte Ltd",
+    initials: "CB",
+    types: [
+      "HDB"
+    ],
+    established: "",
+    website: "",
+    affiliates: [],
+    description: "",
+    reviews: [
+      {
+        id: "new-274880",
+        source: "community",
+        published: true,
+        date: "2026-06-02",
+        author: "Anonymous homeowner",
+        sourceUrl: "https://www.reddit.com/r/askSingapore/comments/1pol1l5/interior_design_firm_recommendations/",
+        redditUsername: "maes-classes",
+        originalPostDate: "2026-01-01",
+        rating: null,
+        title: "Hello",
+        body: "Hello! I absolutely recommend Francis from Ciseern. I was also really concerned after reading all the renovation horror stories, so I decided to take the approach of only shortlisting IDs who were personally recommended. My next step was to check HDB's list of approved companies (DRC). Ciseern is not only in the DRC but also CASE accredited.\n\nMy husband and I specifically requested for Francis as he handled my cousin's recent reno AND his previous one. From our first meet ups, we felt really comfortable with his evident wealth of experience and all the advice he could give us, plus his attention to detail. He has a really good process/ structure in place to make sure he covers everything needed, such as giving us a colour survey to understand our aesthetic taste before he recommended colours and materials.\n\nWe also really appreciated his responsiveness to our budget. Ciseern is not the cheapest but for the quality of materials they use, it is comparable to the other quotes we got for formaldehyde free carpentry. Francis helped us prioritise and come as close to our budget as possible.\n\nThe biggest testament to what a great experience we had with him is that we didn't have to step in and check on the reno in progress at all, because he kept us regularly updated with photos/ videos and managed the contractors so well. We only went to our house when we needed to meet him to discuss details like aircon/ sanitary fittings placement. \n\nDM me if you'd like to see the house/ get in touch with him. :)",
+        tags: []
+      }
+    ]
   }
 ]
 };
