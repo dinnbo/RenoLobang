@@ -1,4 +1,3 @@
-
 // RenoLobang · functions/submit.js (Cloudflare Pages Function)
 
 const corsHeaders = {
@@ -96,7 +95,7 @@ export async function onRequest(context) {
   const record = Array.isArray(insertData) ? insertData[0] : insertData;
 
   context.waitUntil(
-    fetch(new URL('/functions/notify', request.url).toString(), {
+    fetch(new URL('/notify-api', request.url).toString(), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
