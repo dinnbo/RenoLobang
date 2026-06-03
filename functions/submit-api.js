@@ -86,8 +86,54 @@ export async function onRequest(context) {
     status: 'pending'
   };
 
-  // Sanitise strings to remove emoji and non-standard characters
-  // that can cause PostgREST PGRST102 errors
-  function sanitise(val) {
-    if (typeof val !== 'string') return val;
-    return val.replace(/[^
+  // Use JSON.stringify to handle the payload
+  const payloadStr = JSON.stringify(payload);
+  console.log('Supabase URL:', env.SUPABASE_URL);
+  console.log('Payload length:', payloadStr.length);
+  console.log('Payload preview:', payloadStr.slice(0, 200));
+
+  const insertRes = await fetch(`${env.SUPABASE_URL}/rest/v1/submissions`, {
+    method: 'POST',
+    headers: {
+      'apikey': env.SUPABASE_SERVICE_KEY,
+      'Authorization': 'Bearer ' + env.SUPABASE_SERVICE_KEY,
+      'Content-Type': 'application/json; charset=utf-8',
+      'Prefer': 'return=representation',
+      'Accept': 'application/json'
+    },
+    body: payloadStr
+  });
+
+  const insertText = await insertRes.text();
+  console.log('Supabase status:', insertRes.status);
+  console.log('Supabase response:', insertText);
+  console.log('Supabase status:', insertRes.status);
+  console.log('Response headers ct:', insertRes.headers.get('content-type'));
+
+  if (!insertRes.ok) {
+    return new Response(JSON.stringify({ error: insertText }), { status: 500, headers: corsHeaders });
+  }
+
+  let record;
+  try {
+    const insertData = JSON.parse(insertText);
+    record = Array.isArray(insertData) ? insertData[0] : insertData;
+  } catch {
+    return new Response(JSON.stringify({ error: 'Unexpected response from database' }), { status: 500, headers: corsHeaders });
+  }
+
+  context.waitUntil(
+    fetch(new URL('/notify-api', request.url).toString(), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        firmName: body.firmName,
+        sourceType: body.sourceType,
+        reviewTitle: body.reviewTitle,
+        authorName: body.authorName
+      })
+    }).catch(e => console.error('Notify error:', e))
+  );
+
+  return new Response(JSON.stringify({ success: true, id: record.id }), { status: 200, headers: corsHeaders });
+}
