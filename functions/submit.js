@@ -105,5 +105,4 @@ export async function onRequest(context) {
 
   return new Response(JSON.stringify({ success: true, id: data.id }), { status: 200, headers: corsHeaders });
 }
-});
 }
