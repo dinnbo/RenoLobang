@@ -198,6 +198,7 @@
 <script>
   let adminPassword = '';
   let activeTab = 'pending';
+  let submissionsCache = {};
 
   function doLogin() {
     const pw = document.getElementById('pwInput').value;
@@ -264,6 +265,8 @@
       tab.innerHTML = `<div class="empty-state">No ${activeTab} submissions.</div>`;
       return;
     }
+    // Cache submissions by ID for edit modal
+    submissions.forEach(s => { submissionsCache[s.id] = s; });
     tab.innerHTML = submissions.map(sub => renderCard(sub)).join('');
   }
 
@@ -287,7 +290,7 @@
       <button class="action-btn btn-reject" onclick="handleAction('${sub.id}','reject',this)">✕ Reject</button>` :
       sub.status === 'approved' ? `
         <span class="action-status" style="color:var(--green)">✓ Published ${sub.reviewed_at ? new Date(sub.reviewed_at).toLocaleDateString('en-SG') : ''}</span>
-        <button class="action-btn" style="background:var(--blue-light);color:var(--blue-dark);border-color:var(--blue-mid)" onclick="openEditModal('${publishedReviewId}', ${JSON.stringify(sub).replace(/'/g,"&#39;")})">Edit</button>
+        <button class="action-btn" style="background:var(--blue-light);color:var(--blue-dark);border-color:var(--blue-mid)" onclick="openEditModal('${publishedReviewId}', '${sub.id}')">Edit</button>
         <button class="action-btn btn-reject" onclick="handleDelete('${sub.id}','${publishedReviewId}',this)">Delete from site</button>` :
       sub.status === 'deleted' ? `<span class="action-status">Deleted</span>` :
       `<span class="action-status">Rejected ${sub.reviewed_at ? new Date(sub.reviewed_at).toLocaleDateString('en-SG') : ''}</span>`;
@@ -296,7 +299,7 @@
       <div class="rac-header">
         <div>
           <div class="rac-firm">${sub.firm_name}${sub.is_new_firm ? '<span class="new-firm-badge">New firm</span>' : ''}</div>
-          <div class="rac-meta">Submitted ${date} · ${sub.author_name || 'Anonymous'} · ${sub.author_email}</div>
+          <div class="rac-meta">Submitted ${date} · ${sub.author_name || 'Anonymous'}${sub.author_email ? ' · ' + sub.author_email : ''}</div>
         </div>
         <div class="rac-badges">
           <span class="rac-source ${srcMap[sub.source_type]}">${srcLabel[sub.source_type]}</span>
@@ -384,10 +387,11 @@
 
   let currentEditReviewId = null;
 
-  function openEditModal(reviewId, sub) {
+  function openEditModal(reviewId, submissionId) {
+    const sub = submissionsCache[submissionId];
+    if (!sub) { showError('Could not load submission data. Please refresh.'); return; }
     currentEditReviewId = reviewId;
     document.getElementById('editReviewId').value = reviewId;
-    // Try to find current values from data if available, fall back to sub fields
     document.getElementById('editTitle').value = sub.review_title || '';
     document.getElementById('editBody').value = sub.review_body || '';
     document.getElementById('editAuthor').value = sub.author_name || '';
