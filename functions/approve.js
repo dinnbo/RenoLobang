@@ -11,8 +11,14 @@ const GITHUB_REPO = 'RenoLobang';
 const GITHUB_FILE = 'data.js';
 const GITHUB_BRANCH = 'main';
 
-export async function onRequestPost(context) {
+export async function onRequest(context) {
   const { request, env } = context;
+  if (request.method === 'OPTIONS') {
+    return new Response(null, { status: 204, headers: { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'Content-Type, x-admin-password', 'Access-Control-Allow-Methods': 'GET, POST, OPTIONS' }});
+  }
+  if (request.method !== 'POST') {
+    return new Response('Method not allowed', { status: 405 });
+  }
 
   if (request.headers.get('x-admin-password') !== env.ADMIN_PASSWORD) {
     return new Response(JSON.stringify({ error: 'Unauthorised' }), { status: 401, headers: corsHeaders });
@@ -32,13 +38,7 @@ export async function onRequestPost(context) {
 
   return new Response(JSON.stringify({ error: 'Invalid action' }), { status: 400, headers: corsHeaders });
 }
-
-export async function onRequestOptions() {
-  return new Response(null, { status: 204, headers: {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers': 'Content-Type, x-admin-password',
-    'Access-Control-Allow-Methods': 'POST, OPTIONS'
-  }});
+});
 }
 
 // ── SUPABASE HELPERS ──────────────────────────────────────────────────────────
