@@ -1,5 +1,5 @@
 {
   "version": 1,
-  "include": ["/submit-api", "/submissions-api", "/approve-api", "/notify-api"],
-  "exclude": []
+  "include": ["/*"],
+  "exclude": ["/index.html", "/firm.html", "/submit.html", "/admin.html", "/about.html", "/data.js", "/package.json", "/*.css", "/*.png", "/*.jpg", "/*.ico"]
 }
