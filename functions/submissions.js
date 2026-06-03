@@ -8,9 +8,15 @@ const corsHeaders = {
 
 export async function onRequest(context) {
   const { request, env } = context;
+
   if (request.method === 'OPTIONS') {
-    return new Response(null, { status: 204, headers: { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'Content-Type, x-admin-password', 'Access-Control-Allow-Methods': 'GET, POST, OPTIONS' }});
+    return new Response(null, { status: 204, headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Headers': 'Content-Type, x-admin-password',
+      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS'
+    }});
   }
+
   if (request.method !== 'GET') {
     return new Response('Method not allowed', { status: 405 });
   }
@@ -35,5 +41,4 @@ export async function onRequest(context) {
   const data = await res.json();
   if (!res.ok) return new Response(JSON.stringify({ error: data }), { status: 500, headers: corsHeaders });
   return new Response(JSON.stringify(data), { status: 200, headers: corsHeaders });
-}
 }
