@@ -433,7 +433,7 @@
     btn.disabled=true; btn.textContent='Submitting...';
 
     try {
-      const res=await fetch('/submit',{
+      const res=await fetch('/submit-api',{
         method:'POST',
         headers:{'Content-Type':'application/json'},
         body:JSON.stringify(payload)
