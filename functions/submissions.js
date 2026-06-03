@@ -36,5 +36,4 @@ export async function onRequest(context) {
   if (!res.ok) return new Response(JSON.stringify({ error: data }), { status: 500, headers: corsHeaders });
   return new Response(JSON.stringify(data), { status: 200, headers: corsHeaders });
 }
-});
 }
