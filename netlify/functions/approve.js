@@ -112,7 +112,7 @@ exports.handler = async (event) => {
     ...(sub.media_url && { mediaUrl: sub.media_url }),
     ...(sub.media_source && { mediaSource: sub.media_source }),
     rating: sub.rating || null,
-    title: sub.review_title || sub.review_body.split(/[.!?]/)[0].trim().slice(0, 80),
+    title: sub.review_title || null,
     body: sub.review_body,
     tags: sub.tags ? sub.tags.split(',').map(t => t.trim()).filter(Boolean) : [],
     ...(sub.property_type && { propertyType: sub.property_type }),
@@ -158,7 +158,7 @@ exports.handler = async (event) => {
       method: 'PUT',
       headers: ghHeaders,
       body: JSON.stringify({
-        message: `Publish review: ${newReview.title.slice(0, 60)} (${sub.firm_name})`,
+        message: `Publish review: ${(newReview.title || newReview.body).slice(0, 60)} (${sub.firm_name})`,
         content: Buffer.from(newContent).toString('base64'),
         sha: fileSha,
         branch: GITHUB_BRANCH
@@ -183,4 +183,129 @@ exports.handler = async (event) => {
     statusCode: 200,
     body: JSON.stringify({ success: true, action: 'approved', reviewId })
   };
+};
+
+// ── Helper: push updated data.js to GitHub ───────────────────────────────────
+async function pushToGitHub(newContent, fileSha, commitMessage) {
+  const ghHeaders = {
+    'Authorization': `token ${GITHUB_TOKEN}`,
+    'Accept': 'application/vnd.github.v3+json',
+    'Content-Type': 'application/json'
+  };
+  const pushRes = await fetch(
+    `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${GITHUB_FILE}`,
+    {
+      method: 'PUT',
+      headers: ghHeaders,
+      body: JSON.stringify({
+        message: commitMessage,
+        content: Buffer.from(newContent).toString('base64'),
+        sha: fileSha,
+        branch: GITHUB_BRANCH
+      })
+    }
+  );
+  if (!pushRes.ok) {
+    const err = await pushRes.text();
+    throw new Error('GitHub push failed: ' + err);
+  }
+}
+
+// ── Helper: fetch data.js from GitHub ────────────────────────────────────────
+async function fetchDataJs() {
+  const ghHeaders = {
+    'Authorization': `token ${GITHUB_TOKEN}`,
+    'Accept': 'application/vnd.github.v3+json'
+  };
+  const fileRes = await fetch(
+    `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${GITHUB_FILE}?ref=${GITHUB_BRANCH}`,
+    { headers: ghHeaders }
+  );
+  if (!fileRes.ok) throw new Error('Could not fetch data.js from GitHub');
+  const fileData = await fileRes.json();
+  const content = Buffer.from(fileData.content, 'base64').toString('utf8');
+  const match = content.match(/const RENOLOBANG_DATA = ({[\s\S]*?});\s*\n\s*\/\/ Helper/);
+  if (!match) throw new Error('Could not find RENOLOBANG_DATA in data.js');
+  const dataObj = eval('(' + match[1] + ')');
+  return { content, sha: fileData.sha, dataObj };
+}
+
+// ── Helper: serialise dataObj back into data.js content ──────────────────────
+function serialise(currentContent, dataObj) {
+  const firmsJson = JSON.stringify(dataObj.firms, null, 2)
+    .replace(/"([a-zA-Z_][a-zA-Z0-9_]*)"\s*:/g, '$1:');
+  return currentContent.replace(
+    /const RENOLOBANG_DATA = {[\s\S]*?};\s*\n\s*\/\/ Helper/,
+    `const RENOLOBANG_DATA = {\n  firms: ${firmsJson}\n};\n\n// Helper`
+  );
+}
+
+// ── DELETE handler ────────────────────────────────────────────────────────────
+async function handleDelete(submissionId, reviewId, supabase) {
+  if (!reviewId) return { statusCode: 400, body: JSON.stringify({ error: 'reviewId required for delete' }) };
+  try {
+    const { content, sha, dataObj } = await fetchDataJs();
+    let deleted = false;
+    for (const firm of dataObj.firms) {
+      const before = firm.reviews.length;
+      firm.reviews = firm.reviews.filter(r => r.id !== reviewId);
+      if (firm.reviews.length < before) deleted = true;
+    }
+    if (!deleted) return { statusCode: 404, body: JSON.stringify({ error: 'Review not found in data.js' }) };
+    const newContent = serialise(content, dataObj);
+    await pushToGitHub(newContent, sha, `Delete review ${reviewId}`);
+    if (submissionId) {
+      await supabase.from('submissions').update({ status: 'deleted', reviewed_at: new Date().toISOString() }).eq('id', submissionId);
+    }
+    return { statusCode: 200, body: JSON.stringify({ success: true, action: 'deleted' }) };
+  } catch (e) {
+    return { statusCode: 500, body: JSON.stringify({ error: e.message }) };
+  }
+}
+
+// ── EDIT handler ──────────────────────────────────────────────────────────────
+async function handleEdit(reviewId, updates) {
+  if (!reviewId) return { statusCode: 400, body: JSON.stringify({ error: 'reviewId required for edit' }) };
+  try {
+    const { content, sha, dataObj } = await fetchDataJs();
+    let found = false;
+    for (const firm of dataObj.firms) {
+      const idx = firm.reviews.findIndex(r => r.id === reviewId);
+      if (idx > -1) {
+        firm.reviews[idx] = { ...firm.reviews[idx], ...updates };
+        found = true;
+        break;
+      }
+    }
+    if (!found) return { statusCode: 404, body: JSON.stringify({ error: 'Review not found in data.js' }) };
+    const newContent = serialise(content, dataObj);
+    await pushToGitHub(newContent, sha, `Edit review ${reviewId}`);
+    return { statusCode: 200, body: JSON.stringify({ success: true, action: 'edited' }) };
+  } catch (e) {
+    return { statusCode: 500, body: JSON.stringify({ error: e.message }) };
+  }
+}
+
+// ── ROUTER: re-export handler to support multiple actions ─────────────────────
+const _originalHandler = module.exports.handler;
+module.exports.handler = async (event) => {
+  // Check for delete/edit actions before falling through to approve/reject
+  if (event.httpMethod === 'POST') {
+    const authHeader = event.headers['x-admin-password'];
+    if (authHeader !== process.env.ADMIN_PASSWORD) {
+      return { statusCode: 401, body: JSON.stringify({ error: 'Unauthorised' }) };
+    }
+    let body;
+    try { body = JSON.parse(event.body); } catch {
+      return { statusCode: 400, body: JSON.stringify({ error: 'Invalid JSON' }) };
+    }
+    if (body.action === 'delete') {
+      const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
+      return handleDelete(body.submissionId, body.reviewId, supabase);
+    }
+    if (body.action === 'edit') {
+      return handleEdit(body.reviewId, body.updates);
+    }
+  }
+  return _originalHandler(event);
 };
