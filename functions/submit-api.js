@@ -91,23 +91,17 @@ export async function onRequest(context) {
   console.log('Payload length:', payloadStr.length);
   console.log('Payload preview:', payloadStr.slice(0, 200));
 
-  const encoder = new TextEncoder();
-  const encodedPayload = encoder.encode(payloadStr);
-  console.log('Encoded payload length:', encodedPayload.length);
-
-  const insertReq = new Request(`${env.SUPABASE_URL}/rest/v1/submissions`, {
+  const insertRes = await fetch(`${env.SUPABASE_URL}/rest/v1/submissions`, {
     method: 'POST',
-    headers: new Headers({
+    headers: {
       'apikey': env.SUPABASE_SERVICE_KEY,
       'Authorization': 'Bearer ' + env.SUPABASE_SERVICE_KEY,
-      'Content-Type': 'application/json',
-      'Content-Length': String(encodedPayload.length),
+      'Content-Type': 'application/json; charset=utf-8',
       'Prefer': 'return=representation',
       'Accept': 'application/json'
-    }),
-    body: encodedPayload
+    },
+    body: payloadStr
   });
-  const insertRes = await fetch(insertReq);
 
   const insertText = await insertRes.text();
   console.log('Supabase status:', insertRes.status);
