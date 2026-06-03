@@ -1,9 +1,4 @@
-// ─────────────────────────────────────────────────────────────────────────────
 // RenoLobang · functions/approve.js (Cloudflare Pages Function)
-// Handles approve, reject, edit, and delete actions on submissions.
-// ─────────────────────────────────────────────────────────────────────────────
-
-import { createClient } from '@supabase/supabase-js';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -19,8 +14,7 @@ const GITHUB_BRANCH = 'main';
 export async function onRequestPost(context) {
   const { request, env } = context;
 
-  const adminPassword = request.headers.get('x-admin-password');
-  if (adminPassword !== env.ADMIN_PASSWORD) {
+  if (request.headers.get('x-admin-password') !== env.ADMIN_PASSWORD) {
     return new Response(JSON.stringify({ error: 'Unauthorised' }), { status: 401, headers: corsHeaders });
   }
 
@@ -31,18 +25,10 @@ export async function onRequestPost(context) {
 
   const { action, submissionId, reviewId, updates, adminNotes } = body;
 
-  if (action === 'delete') {
-    return handleDelete(submissionId, reviewId, env);
-  }
-  if (action === 'edit') {
-    return handleEdit(reviewId, updates, env);
-  }
-  if (action === 'reject') {
-    return handleReject(submissionId, adminNotes, env);
-  }
-  if (action === 'approve') {
-    return handleApprove(submissionId, adminNotes, env);
-  }
+  if (action === 'delete') return handleDelete(submissionId, reviewId, env);
+  if (action === 'edit') return handleEdit(reviewId, updates, env);
+  if (action === 'reject') return handleReject(submissionId, adminNotes, env);
+  if (action === 'approve') return handleApprove(submissionId, adminNotes, env);
 
   return new Response(JSON.stringify({ error: 'Invalid action' }), { status: 400, headers: corsHeaders });
 }
@@ -55,26 +41,95 @@ export async function onRequestOptions() {
   }});
 }
 
-// ── REJECT ────────────────────────────────────────────────────────────────────
+// ── SUPABASE HELPERS ──────────────────────────────────────────────────────────
+async function supabaseGet(env, table, filters) {
+  const params = Object.entries(filters).map(([k,v]) => `${k}=eq.${v}`).join('&');
+  const res = await fetch(`${env.SUPABASE_URL}/rest/v1/${table}?${params}`, {
+    headers: { 'apikey': env.SUPABASE_SERVICE_KEY, 'Authorization': `Bearer ${env.SUPABASE_SERVICE_KEY}` }
+  });
+  const data = await res.json();
+  return Array.isArray(data) ? data[0] : null;
+}
+
+async function supabaseUpdate(env, table, id, updates) {
+  await fetch(`${env.SUPABASE_URL}/rest/v1/${table}?id=eq.${id}`, {
+    method: 'PATCH',
+    headers: {
+      'apikey': env.SUPABASE_SERVICE_KEY,
+      'Authorization': `Bearer ${env.SUPABASE_SERVICE_KEY}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(updates)
+  });
+}
+
+// ── GITHUB HELPERS ────────────────────────────────────────────────────────────
+async function fetchDataJs(env) {
+  const res = await fetch(
+    `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${GITHUB_FILE}?ref=${GITHUB_BRANCH}`,
+    { headers: { 'Authorization': `token ${env.GITHUB_TOKEN}`, 'Accept': 'application/vnd.github.v3+json' } }
+  );
+  if (!res.ok) throw new Error('Could not fetch data.js from GitHub');
+  const fileData = await res.json();
+  const content = atob(fileData.content.replace(/\n/g, ''));
+
+  // Parse firms array using JSON.parse instead of eval
+  const firmsMatch = content.match(/firms:\s*(\[[\s\S]*?\])\s*\n\s*\}/);
+  if (!firmsMatch) throw new Error('Could not find firms array in data.js');
+
+  // Convert JS object notation to valid JSON
+  const firmsJson = firmsMatch[1]
+    .replace(/\/\/[^\n]*/g, '')           // remove comments
+    .replace(/,(\s*[}\]])/g, '$1')        // remove trailing commas
+    .replace(/([{,]\s*)([a-zA-Z_][a-zA-Z0-9_]*)\s*:/g, '$1"$2":'); // quote keys
+
+  let firms;
+  try {
+    firms = JSON.parse(firmsJson);
+  } catch(e) {
+    throw new Error('Could not parse firms from data.js: ' + e.message);
+  }
+
+  return { content, sha: fileData.sha, dataObj: { firms } };
+}
+
+function serialise(currentContent, dataObj) {
+  const firmsJson = JSON.stringify(dataObj.firms, null, 2)
+    .replace(/"([a-zA-Z_][a-zA-Z0-9_]*)"\s*:/g, '$1:');
+  return currentContent.replace(
+    /const RENOLOBANG_DATA = {[\s\S]*?};\s*\n\s*\/\/ Helper/,
+    `const RENOLOBANG_DATA = {\n  firms: ${firmsJson}\n};\n\n// Helper`
+  );
+}
+
+async function pushToGitHub(newContent, sha, message, env) {
+  const encoded = btoa(unescape(encodeURIComponent(newContent)));
+  const res = await fetch(
+    `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${GITHUB_FILE}`,
+    {
+      method: 'PUT',
+      headers: {
+        'Authorization': `token ${env.GITHUB_TOKEN}`,
+        'Accept': 'application/vnd.github.v3+json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ message, content: encoded, sha, branch: GITHUB_BRANCH })
+    }
+  );
+  if (!res.ok) throw new Error('GitHub push failed: ' + await res.text());
+}
+
+// ── ACTIONS ───────────────────────────────────────────────────────────────────
 async function handleReject(submissionId, adminNotes, env) {
-  const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_KEY);
-  await supabase.from('submissions').update({
-    status: 'rejected',
-    admin_notes: adminNotes || '',
-    reviewed_at: new Date().toISOString()
-  }).eq('id', submissionId);
+  await supabaseUpdate(env, 'submissions', submissionId, {
+    status: 'rejected', admin_notes: adminNotes || '', reviewed_at: new Date().toISOString()
+  });
   return new Response(JSON.stringify({ success: true, action: 'rejected' }), { status: 200, headers: corsHeaders });
 }
 
-// ── APPROVE ───────────────────────────────────────────────────────────────────
 async function handleApprove(submissionId, adminNotes, env) {
-  const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_KEY);
-
-  const { data: sub, error: fetchError } = await supabase
-    .from('submissions').select('*').eq('id', submissionId).single();
-  if (fetchError || !sub) {
-    return new Response(JSON.stringify({ error: 'Submission not found' }), { status: 404, headers: corsHeaders });
-  }
+  const sub = await supabaseGet(env, 'submissions', { id: submissionId });
+  if (!sub) return new Response(JSON.stringify({ error: 'Submission not found' }), { status: 404, headers: corsHeaders });
 
   let dataJs;
   try { dataJs = await fetchDataJs(env); } catch (e) {
@@ -105,42 +160,34 @@ async function handleApprove(submissionId, adminNotes, env) {
     ...(sub.image_url && { imageUrl: sub.image_url })
   };
 
-  let firmIdx = dataJs.dataObj.firms.findIndex(f => f.id === sub.firm_id);
+  const firmIdx = dataJs.dataObj.firms.findIndex(f => f.id === sub.firm_id);
   if (firmIdx === -1) {
     const newFirmId = sub.firm_name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
     dataJs.dataObj.firms.push({
-      id: newFirmId,
-      name: sub.firm_name,
+      id: newFirmId, name: sub.firm_name,
       initials: sub.firm_name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase(),
       types: sub.property_type ? [sub.property_type] : ['HDB'],
-      established: '',
-      website: '',
-      affiliates: [],
-      description: '',
-      reviews: [newReview]
+      established: '', website: '', affiliates: [], description: '', reviews: [newReview]
     });
   } else {
     dataJs.dataObj.firms[firmIdx].reviews.push(newReview);
   }
 
-  const newContent = serialise(dataJs.content, dataJs.dataObj);
   try {
-    await pushToGitHub(newContent, dataJs.sha, `Publish review: ${(newReview.title || newReview.body).slice(0, 60)} (${sub.firm_name})`, env);
+    const newContent = serialise(dataJs.content, dataJs.dataObj);
+    await pushToGitHub(newContent, dataJs.sha, `Publish review (${sub.firm_name})`, env);
   } catch (e) {
     return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: corsHeaders });
   }
 
-  await supabase.from('submissions').update({
-    status: 'approved',
-    admin_notes: adminNotes || '',
-    reviewed_at: new Date().toISOString(),
-    published_review_id: reviewId
-  }).eq('id', submissionId);
+  await supabaseUpdate(env, 'submissions', submissionId, {
+    status: 'approved', admin_notes: adminNotes || '',
+    reviewed_at: new Date().toISOString(), published_review_id: reviewId
+  });
 
   return new Response(JSON.stringify({ success: true, action: 'approved', reviewId }), { status: 200, headers: corsHeaders });
 }
 
-// ── DELETE ────────────────────────────────────────────────────────────────────
 async function handleDelete(submissionId, reviewId, env) {
   if (!reviewId) return new Response(JSON.stringify({ error: 'reviewId required' }), { status: 400, headers: corsHeaders });
   try {
@@ -154,17 +201,13 @@ async function handleDelete(submissionId, reviewId, env) {
     if (!deleted) return new Response(JSON.stringify({ error: 'Review not found' }), { status: 404, headers: corsHeaders });
     const newContent = serialise(dataJs.content, dataJs.dataObj);
     await pushToGitHub(newContent, dataJs.sha, `Delete review ${reviewId}`, env);
-    if (submissionId) {
-      const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_KEY);
-      await supabase.from('submissions').update({ status: 'deleted', reviewed_at: new Date().toISOString() }).eq('id', submissionId);
-    }
+    if (submissionId) await supabaseUpdate(env, 'submissions', submissionId, { status: 'deleted', reviewed_at: new Date().toISOString() });
     return new Response(JSON.stringify({ success: true, action: 'deleted' }), { status: 200, headers: corsHeaders });
   } catch (e) {
     return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: corsHeaders });
   }
 }
 
-// ── EDIT ──────────────────────────────────────────────────────────────────────
 async function handleEdit(reviewId, updates, env) {
   if (!reviewId) return new Response(JSON.stringify({ error: 'reviewId required' }), { status: 400, headers: corsHeaders });
   try {
@@ -172,11 +215,7 @@ async function handleEdit(reviewId, updates, env) {
     let found = false;
     for (const firm of dataJs.dataObj.firms) {
       const idx = firm.reviews.findIndex(r => r.id === reviewId);
-      if (idx > -1) {
-        firm.reviews[idx] = { ...firm.reviews[idx], ...updates };
-        found = true;
-        break;
-      }
+      if (idx > -1) { firm.reviews[idx] = { ...firm.reviews[idx], ...updates }; found = true; break; }
     }
     if (!found) return new Response(JSON.stringify({ error: 'Review not found' }), { status: 404, headers: corsHeaders });
     const newContent = serialise(dataJs.content, dataJs.dataObj);
@@ -184,54 +223,5 @@ async function handleEdit(reviewId, updates, env) {
     return new Response(JSON.stringify({ success: true, action: 'edited' }), { status: 200, headers: corsHeaders });
   } catch (e) {
     return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: corsHeaders });
-  }
-}
-
-// ── HELPERS ───────────────────────────────────────────────────────────────────
-async function fetchDataJs(env) {
-  const ghHeaders = {
-    'Authorization': `token ${env.GITHUB_TOKEN}`,
-    'Accept': 'application/vnd.github.v3+json'
-  };
-  const res = await fetch(
-    `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${GITHUB_FILE}?ref=${GITHUB_BRANCH}`,
-    { headers: ghHeaders }
-  );
-  if (!res.ok) throw new Error('Could not fetch data.js from GitHub');
-  const fileData = await res.json();
-  const content = atob(fileData.content.replace(/\n/g, ''));
-  const match = content.match(/const RENOLOBANG_DATA = ({[\s\S]*?});\s*\n\s*\/\/ Helper/);
-  if (!match) throw new Error('Could not find RENOLOBANG_DATA in data.js');
-  const dataObj = eval('(' + match[1] + ')');
-  return { content, sha: fileData.sha, dataObj };
-}
-
-function serialise(currentContent, dataObj) {
-  const firmsJson = JSON.stringify(dataObj.firms, null, 2)
-    .replace(/"([a-zA-Z_][a-zA-Z0-9_]*)"\s*:/g, '$1:');
-  return currentContent.replace(
-    /const RENOLOBANG_DATA = {[\s\S]*?};\s*\n\s*\/\/ Helper/,
-    `const RENOLOBANG_DATA = {\n  firms: ${firmsJson}\n};\n\n// Helper`
-  );
-}
-
-async function pushToGitHub(newContent, sha, message, env) {
-  const ghHeaders = {
-    'Authorization': `token ${env.GITHUB_TOKEN}`,
-    'Accept': 'application/vnd.github.v3+json',
-    'Content-Type': 'application/json'
-  };
-  const encoded = btoa(unescape(encodeURIComponent(newContent)));
-  const res = await fetch(
-    `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${GITHUB_FILE}`,
-    {
-      method: 'PUT',
-      headers: ghHeaders,
-      body: JSON.stringify({ message, content: encoded, sha, branch: GITHUB_BRANCH })
-    }
-  );
-  if (!res.ok) {
-    const err = await res.text();
-    throw new Error('GitHub push failed: ' + err);
   }
 }
