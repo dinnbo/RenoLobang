@@ -95,6 +95,21 @@
     .error-msg { background: var(--red-light); border: 0.5px solid var(--red-mid); border-radius: var(--radius); padding: 10px 14px; font-size: 13px; color: var(--red-dark); margin-bottom: 1rem; display: none; }
     .error-msg.show { display: block; }
 
+    /* EDIT MODAL */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 200; display: none; align-items: center; justify-content: center; padding: 1rem; }
+    .modal-overlay.show { display: flex; }
+    .modal { background: #fff; border-radius: var(--radius-lg); padding: 1.5rem; width: 100%; max-width: 560px; max-height: 90vh; overflow-y: auto; }
+    .modal-title { font-family: 'DM Serif Display', serif; font-size: 20px; font-weight: 400; margin-bottom: 1.25rem; }
+    .modal-field { margin-bottom: 1rem; }
+    .modal-field label { display: block; font-size: 12px; font-weight: 500; color: var(--text-muted); margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.05em; }
+    .modal-field input, .modal-field textarea, .modal-field select { width: 100%; padding: 9px 12px; border: 1px solid var(--border-strong); border-radius: var(--radius); font-size: 14px; font-family: 'DM Sans', sans-serif; color: var(--text); outline: none; }
+    .modal-field input:focus, .modal-field textarea:focus { border-color: var(--green); }
+    .modal-field textarea { resize: vertical; min-height: 100px; line-height: 1.6; }
+    .modal-actions { display: flex; gap: 8px; margin-top: 1.25rem; justify-content: flex-end; }
+    .modal-save { padding: 8px 18px; background: var(--green); color: #fff; border: none; border-radius: var(--radius); font-size: 13px; font-family: 'DM Sans', sans-serif; font-weight: 500; cursor: pointer; }
+    .modal-save:hover { background: var(--green-dark); }
+    .modal-cancel { padding: 8px 18px; background: #fff; color: var(--text-muted); border: 0.5px solid var(--border-strong); border-radius: var(--radius); font-size: 13px; font-family: 'DM Sans', sans-serif; cursor: pointer; }
+
     @media (max-width: 480px) { .rac-header { flex-direction: column; } }
   </style>
 </head>
@@ -107,6 +122,45 @@
     <input type="password" id="pwInput" placeholder="Password" onkeydown="if(event.key==='Enter')doLogin()" />
     <button class="login-btn" onclick="doLogin()">Sign in</button>
     <div class="login-error" id="loginError">Incorrect password.</div>
+  </div>
+</div>
+
+<!-- EDIT MODAL -->
+<div class="modal-overlay" id="editModal">
+  <div class="modal">
+    <div class="modal-title">Edit review</div>
+    <input type="hidden" id="editReviewId" />
+    <div class="modal-field">
+      <label>Review title <span style="font-weight:400;text-transform:none;font-size:11px">(leave blank for no title)</span></label>
+      <input type="text" id="editTitle" placeholder="No title" maxlength="100" />
+    </div>
+    <div class="modal-field">
+      <label>Review body *</label>
+      <textarea id="editBody" rows="6"></textarea>
+    </div>
+    <div class="modal-field">
+      <label>Author display name</label>
+      <input type="text" id="editAuthor" placeholder="Anonymous homeowner" />
+    </div>
+    <div class="modal-field">
+      <label>Rating (1–5, leave blank for none)</label>
+      <select id="editRating">
+        <option value="">No rating</option>
+        <option value="1">1 – Poor</option>
+        <option value="2">2 – Below average</option>
+        <option value="3">3 – Average</option>
+        <option value="4">4 – Good</option>
+        <option value="5">5 – Excellent</option>
+      </select>
+    </div>
+    <div class="modal-field">
+      <label>Tags (comma-separated)</label>
+      <input type="text" id="editTags" placeholder="e.g. carpentry, timeline" />
+    </div>
+    <div class="modal-actions">
+      <button class="modal-cancel" onclick="closeEditModal()">Cancel</button>
+      <button class="modal-save" id="editSaveBtn" onclick="saveEdit()">Save &amp; update live</button>
+    </div>
   </div>
 </div>
 
@@ -227,17 +281,22 @@
     const date = new Date(sub.created_at).toLocaleDateString('en-SG', { day:'numeric', month:'short', year:'numeric' });
 
     const isPending = sub.status === 'pending';
+    const publishedReviewId = sub.published_review_id || '';
     const actions = isPending ? `
       <button class="action-btn btn-approve" onclick="handleAction('${sub.id}','approve',this)">✓ Approve &amp; publish</button>
       <button class="action-btn btn-reject" onclick="handleAction('${sub.id}','reject',this)">✕ Reject</button>` :
-      sub.status === 'approved' ? `<span class="action-status">Published ${sub.reviewed_at ? new Date(sub.reviewed_at).toLocaleDateString('en-SG') : ''}</span>` :
+      sub.status === 'approved' ? `
+        <span class="action-status" style="color:var(--green)">✓ Published ${sub.reviewed_at ? new Date(sub.reviewed_at).toLocaleDateString('en-SG') : ''}</span>
+        <button class="action-btn" style="background:var(--blue-light);color:var(--blue-dark);border-color:var(--blue-mid)" onclick="openEditModal('${publishedReviewId}', ${JSON.stringify(sub).replace(/'/g,"&#39;")})">Edit</button>
+        <button class="action-btn btn-reject" onclick="handleDelete('${sub.id}','${publishedReviewId}',this)">Delete from site</button>` :
+      sub.status === 'deleted' ? `<span class="action-status">Deleted</span>` :
       `<span class="action-status">Rejected ${sub.reviewed_at ? new Date(sub.reviewed_at).toLocaleDateString('en-SG') : ''}</span>`;
 
     return `<div class="review-admin-card" id="card-${sub.id}">
       <div class="rac-header">
         <div>
           <div class="rac-firm">${sub.firm_name}${sub.is_new_firm ? '<span class="new-firm-badge">New firm</span>' : ''}</div>
-          <div class="rac-meta">Submitted ${date} · ${sub.author_name || 'Anonymous'}${sub.author_email ? ' · ' + sub.author_email : ''}</div>
+          <div class="rac-meta">Submitted ${date} · ${sub.author_name || 'Anonymous'} · ${sub.author_email}</div>
         </div>
         <div class="rac-badges">
           <span class="rac-source ${srcMap[sub.source_type]}">${srcLabel[sub.source_type]}</span>
@@ -298,6 +357,90 @@
     el.textContent = msg; el.classList.add('show');
     setTimeout(() => el.classList.remove('show'), 6000);
   }
+
+  async function handleDelete(submissionId, reviewId, btn) {
+    if (!confirm('Delete this review from the live site? This cannot be undone.')) return;
+    btn.disabled = true; btn.textContent = 'Deleting...';
+    try {
+      const res = await fetch('/.netlify/functions/approve', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-admin-password': adminPassword },
+        body: JSON.stringify({ action: 'delete', submissionId, reviewId })
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        const card = btn.closest('.review-admin-card');
+        card.querySelector('.rac-actions').innerHTML = '<span class="action-status">Deleted from site</span>';
+        renderStats();
+      } else {
+        btn.disabled = false; btn.textContent = 'Delete from site';
+        showError('Delete failed: ' + (data.error || 'Unknown error'));
+      }
+    } catch (e) {
+      btn.disabled = false; btn.textContent = 'Delete from site';
+      showError('Network error: ' + e.message);
+    }
+  }
+
+  let currentEditReviewId = null;
+
+  function openEditModal(reviewId, sub) {
+    currentEditReviewId = reviewId;
+    document.getElementById('editReviewId').value = reviewId;
+    // Try to find current values from data if available, fall back to sub fields
+    document.getElementById('editTitle').value = sub.review_title || '';
+    document.getElementById('editBody').value = sub.review_body || '';
+    document.getElementById('editAuthor').value = sub.author_name || '';
+    document.getElementById('editRating').value = sub.rating || '';
+    document.getElementById('editTags').value = sub.tags || '';
+    document.getElementById('editModal').classList.add('show');
+  }
+
+  function closeEditModal() {
+    document.getElementById('editModal').classList.remove('show');
+    currentEditReviewId = null;
+  }
+
+  async function saveEdit() {
+    const reviewId = currentEditReviewId;
+    if (!reviewId) return;
+    const body = document.getElementById('editBody').value.trim();
+    if (!body) { alert('Review body cannot be empty.'); return; }
+    const btn = document.getElementById('editSaveBtn');
+    btn.disabled = true; btn.textContent = 'Saving...';
+    const updates = {
+      title: document.getElementById('editTitle').value.trim() || null,
+      body,
+      author: document.getElementById('editAuthor').value.trim() || 'Anonymous homeowner',
+      rating: document.getElementById('editRating').value ? parseInt(document.getElementById('editRating').value) : null,
+      tags: document.getElementById('editTags').value.trim()
+        ? document.getElementById('editTags').value.split(',').map(t => t.trim()).filter(Boolean)
+        : []
+    };
+    try {
+      const res = await fetch('/.netlify/functions/approve', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-admin-password': adminPassword },
+        body: JSON.stringify({ action: 'edit', reviewId, updates })
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        closeEditModal();
+        showError('Saved. Site updating now.');
+      } else {
+        showError('Edit failed: ' + (data.error || 'Unknown error'));
+      }
+    } catch (e) {
+      showError('Network error: ' + e.message);
+    } finally {
+      btn.disabled = false; btn.textContent = 'Save & update live';
+    }
+  }
+
+  // Close modal on overlay click
+  document.getElementById('editModal').addEventListener('click', function(e) {
+    if (e.target === this) closeEditModal();
+  });
 </script>
 </body>
 </html>
