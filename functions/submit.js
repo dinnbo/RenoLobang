@@ -36,8 +36,14 @@ async function supabaseUploadImage(env, fileName, imageBuffer, contentType) {
   return { error: null };
 }
 
-export async function onRequestPost(context) {
+export async function onRequest(context) {
   const { request, env } = context;
+  if (request.method === 'OPTIONS') {
+    return new Response(null, { status: 204, headers: { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'Content-Type, x-admin-password', 'Access-Control-Allow-Methods': 'GET, POST, OPTIONS' }});
+  }
+  if (request.method !== 'POST') {
+    return new Response('Method not allowed', { status: 405 });
+  }
   let body;
   try { body = await request.json(); } catch {
     return new Response(JSON.stringify({ error: 'Invalid JSON' }), { status: 400, headers: corsHeaders });
@@ -99,11 +105,5 @@ export async function onRequestPost(context) {
 
   return new Response(JSON.stringify({ success: true, id: data.id }), { status: 200, headers: corsHeaders });
 }
-
-export async function onRequestOptions() {
-  return new Response(null, { status: 204, headers: {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers': 'Content-Type, x-admin-password',
-    'Access-Control-Allow-Methods': 'POST, OPTIONS'
-  }});
+});
 }
