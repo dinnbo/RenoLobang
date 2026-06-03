@@ -55,15 +55,7 @@ export async function onRequest(context) {
     }
   }
 
-  const insertRes = await fetch(`${env.SUPABASE_URL}/rest/v1/submissions`, {
-    method: 'POST',
-    headers: {
-      'apikey': env.SUPABASE_SERVICE_KEY,
-      'Authorization': `Bearer ${env.SUPABASE_SERVICE_KEY}`,
-      'Content-Type': 'application/json',
-      'Prefer': 'return=representation'
-    },
-    body: JSON.stringify({
+  const insertPayload = JSON.stringify({
       firm_id: body.firmId || null,
       firm_name: body.firmName,
       is_new_firm: body.isNewFirm || false,
@@ -84,7 +76,17 @@ export async function onRequest(context) {
       media_source: body.mediaSource || null,
       image_url: imageUrl,
       status: 'pending'
-    })
+  });
+
+  const insertRes = await fetch(`${env.SUPABASE_URL}/rest/v1/submissions`, {
+    method: 'POST',
+    headers: {
+      'apikey': env.SUPABASE_SERVICE_KEY,
+      'Authorization': `Bearer ${env.SUPABASE_SERVICE_KEY}`,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=representation'
+    },
+    body: insertPayload
   });
 
   const insertData = await insertRes.json();
