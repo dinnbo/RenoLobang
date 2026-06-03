@@ -24,9 +24,10 @@ exports.handler = async (event) => {
   // Basic validation
   if (!body.firmName) return { statusCode: 400, body: JSON.stringify({ error: 'Firm name is required' }) };
   if (!body.reviewBody) return { statusCode: 400, body: JSON.stringify({ error: 'Review body is required' }) };
-  if (!body.authorEmail) return { statusCode: 400, body: JSON.stringify({ error: 'Email is required' }) };
   if (!body.sourceType) return { statusCode: 400, body: JSON.stringify({ error: 'Source type is required' }) };
-
+  if (body.sourceType !== 'community' && body.sourceType !== 'media' && !body.authorEmail) {
+    return { statusCode: 400, body: JSON.stringify({ error: 'Email is required' }) };
+  }
   // Handle image upload if provided
   let imageUrl = null;
   if (body.imageBase64 && body.imageFileName) {
