@@ -1,4 +1,3 @@
-
 // RenoLobang · functions/submit-api.js (Cloudflare Pages Function)
 
 const corsHeaders = {
@@ -87,6 +86,11 @@ export async function onRequest(context) {
     status: 'pending'
   };
 
+  const payloadStr = JSON.stringify(payload);
+  console.log('Supabase URL:', env.SUPABASE_URL);
+  console.log('Payload length:', payloadStr.length);
+  console.log('Payload preview:', payloadStr.slice(0, 200));
+
   const insertRes = await fetch(`${env.SUPABASE_URL}/rest/v1/submissions`, {
     method: 'POST',
     headers: {
@@ -95,7 +99,7 @@ export async function onRequest(context) {
       'Content-Type': 'application/json',
       'Prefer': 'return=representation'
     },
-    body: JSON.stringify(payload)
+    body: payloadStr
   });
 
   const insertText = await insertRes.text();
