@@ -1,3 +1,4 @@
+
 // RenoLobang · functions/notify.js (Cloudflare Pages Function)
 
 export async function onRequest(context) {
