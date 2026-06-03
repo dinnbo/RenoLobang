@@ -38,8 +38,6 @@ export async function onRequest(context) {
 
   return new Response(JSON.stringify({ error: 'Invalid action' }), { status: 400, headers: corsHeaders });
 }
-});
-}
 
 // ── SUPABASE HELPERS ──────────────────────────────────────────────────────────
 async function supabaseGet(env, table, filters) {
