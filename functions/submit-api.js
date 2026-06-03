@@ -91,21 +91,29 @@ export async function onRequest(context) {
   console.log('Payload length:', payloadStr.length);
   console.log('Payload preview:', payloadStr.slice(0, 200));
 
-  const insertRes = await fetch(`${env.SUPABASE_URL}/rest/v1/submissions`, {
+  const encoder = new TextEncoder();
+  const encodedPayload = encoder.encode(payloadStr);
+  console.log('Encoded payload length:', encodedPayload.length);
+
+  const insertReq = new Request(`${env.SUPABASE_URL}/rest/v1/submissions`, {
     method: 'POST',
-    headers: {
+    headers: new Headers({
       'apikey': env.SUPABASE_SERVICE_KEY,
-      'Authorization': `Bearer ${env.SUPABASE_SERVICE_KEY}`,
+      'Authorization': 'Bearer ' + env.SUPABASE_SERVICE_KEY,
       'Content-Type': 'application/json',
-      'Content-Length': String(new TextEncoder().encode(payloadStr).length),
-      'Accept-Encoding': 'identity',
-      'Accept': 'application/json',
-      'Prefer': 'return=representation'
-    },
-    body: payloadStr
+      'Content-Length': String(encodedPayload.length),
+      'Prefer': 'return=representation',
+      'Accept': 'application/json'
+    }),
+    body: encodedPayload
   });
+  const insertRes = await fetch(insertReq);
 
   const insertText = await insertRes.text();
+  console.log('Supabase status:', insertRes.status);
+  console.log('Supabase response:', insertText);
+  console.log('Supabase status:', insertRes.status);
+  console.log('Response headers ct:', insertRes.headers.get('content-type'));
 
   if (!insertRes.ok) {
     return new Response(JSON.stringify({ error: insertText }), { status: 500, headers: corsHeaders });
