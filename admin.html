@@ -227,7 +227,7 @@
 
   async function fetchSubmissions(status) {
     try {
-      const res = await fetch(`/functions/submissions?status=${status}`, {
+      const res = await fetch(`/submissions?status=${status}`, {
         headers: { 'x-admin-password': adminPassword }
       });
       if (res.status === 401) return null;
@@ -329,7 +329,7 @@
     btn.textContent = action === 'approve' ? 'Publishing...' : 'Rejecting...';
 
     try {
-      const res = await fetch('/functions/approve', {
+      const res = await fetch('/approve', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'x-admin-password': adminPassword },
         body: JSON.stringify({ submissionId: id, action })
@@ -365,7 +365,7 @@
     if (!confirm('Delete this review from the live site? This cannot be undone.')) return;
     btn.disabled = true; btn.textContent = 'Deleting...';
     try {
-      const res = await fetch('/functions/approve', {
+      const res = await fetch('/approve', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'x-admin-password': adminPassword },
         body: JSON.stringify({ action: 'delete', submissionId, reviewId })
@@ -422,7 +422,7 @@
         : []
     };
     try {
-      const res = await fetch('/functions/approve', {
+      const res = await fetch('/approve', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'x-admin-password': adminPassword },
         body: JSON.stringify({ action: 'edit', reviewId, updates })
