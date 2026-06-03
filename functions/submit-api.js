@@ -97,6 +97,9 @@ export async function onRequest(context) {
       'apikey': env.SUPABASE_SERVICE_KEY,
       'Authorization': `Bearer ${env.SUPABASE_SERVICE_KEY}`,
       'Content-Type': 'application/json',
+      'Content-Length': String(new TextEncoder().encode(payloadStr).length),
+      'Accept-Encoding': 'identity',
+      'Accept': 'application/json',
       'Prefer': 'return=representation'
     },
     body: payloadStr
