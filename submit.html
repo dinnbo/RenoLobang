@@ -222,7 +222,7 @@
     <div class="form-section">
       <div class="form-section-title" id="reviewSectionTitle">Your review</div>
       <div class="field conditional show" id="ratingField">
-        <label>Rating <span class="req">*</span></label>
+        <label>Rating <span class="hint">(optional)</span></label>
         <div class="star-row" id="starRow">
           <button class="star-btn" data-val="1" onclick="setRating(1)" type="button">★</button>
           <button class="star-btn" data-val="2" onclick="setRating(2)" type="button">★</button>
@@ -400,7 +400,7 @@
       }
       if (currentSource==='media' && !document.getElementById('mediaUrl').value.trim()) { alert('Please enter the article link.'); return; }
     }
-    if ((currentSource==='verified'||currentSource==='unverified') && currentRating===0) { alert('Please select a star rating.'); return; }
+    
 
     let title=document.getElementById('reviewTitle').value.trim();
     if (!title) { const s=body.split(/[.!?]/)[0].trim(); title=s.length>80?s.slice(0,77)+'...':s; }
