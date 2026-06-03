@@ -1,19 +1,43 @@
-// ─────────────────────────────────────────────────────────────────────────────
 // RenoLobang · functions/submit.js (Cloudflare Pages Function)
-// Receives form submissions and saves them to Supabase.
-// ─────────────────────────────────────────────────────────────────────────────
 
-import { createClient } from '@supabase/supabase-js';
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'Content-Type, x-admin-password',
+  'Content-Type': 'application/json'
+};
+
+async function supabaseInsert(env, table, payload) {
+  const res = await fetch(`${env.SUPABASE_URL}/rest/v1/${table}`, {
+    method: 'POST',
+    headers: {
+      'apikey': env.SUPABASE_SERVICE_KEY,
+      'Authorization': `Bearer ${env.SUPABASE_SERVICE_KEY}`,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=representation'
+    },
+    body: JSON.stringify(payload)
+  });
+  const data = await res.json();
+  if (!res.ok) return { data: null, error: data };
+  return { data: Array.isArray(data) ? data[0] : data, error: null };
+}
+
+async function supabaseUploadImage(env, fileName, imageBuffer, contentType) {
+  const res = await fetch(`${env.SUPABASE_URL}/storage/v1/object/review-images/${fileName}`, {
+    method: 'POST',
+    headers: {
+      'apikey': env.SUPABASE_SERVICE_KEY,
+      'Authorization': `Bearer ${env.SUPABASE_SERVICE_KEY}`,
+      'Content-Type': contentType || 'image/jpeg'
+    },
+    body: imageBuffer
+  });
+  if (!res.ok) return { error: await res.text() };
+  return { error: null };
+}
 
 export async function onRequestPost(context) {
   const { request, env } = context;
-
-  const corsHeaders = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers': 'Content-Type, x-admin-password',
-    'Content-Type': 'application/json'
-  };
-
   let body;
   try { body = await request.json(); } catch {
     return new Response(JSON.stringify({ error: 'Invalid JSON' }), { status: 400, headers: corsHeaders });
@@ -26,25 +50,19 @@ export async function onRequestPost(context) {
     return new Response(JSON.stringify({ error: 'Email is required' }), { status: 400, headers: corsHeaders });
   }
 
-  const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_KEY);
-
-  // Handle image upload if provided
   let imageUrl = null;
   if (body.imageBase64 && body.imageFileName) {
     try {
       const imageBuffer = Uint8Array.from(atob(body.imageBase64), c => c.charCodeAt(0));
       const fileName = `${Date.now()}-${body.imageFileName.replace(/[^a-zA-Z0-9._-]/g, '')}`;
-      const { error: uploadError } = await supabase.storage
-        .from('review-images')
-        .upload(fileName, imageBuffer, { contentType: body.imageContentType || 'image/jpeg', upsert: false });
+      const { error: uploadError } = await supabaseUploadImage(env, fileName, imageBuffer, body.imageContentType);
       if (!uploadError) {
-        const { data: urlData } = supabase.storage.from('review-images').getPublicUrl(fileName);
-        imageUrl = urlData.publicUrl;
+        imageUrl = `${env.SUPABASE_URL}/storage/v1/object/public/review-images/${fileName}`;
       }
     } catch (e) { console.error('Image error:', e); }
   }
 
-  const { data, error } = await supabase.from('submissions').insert([{
+  const { data, error } = await supabaseInsert(env, 'submissions', {
     firm_id: body.firmId || null,
     firm_name: body.firmName,
     is_new_firm: body.isNewFirm || false,
@@ -65,23 +83,17 @@ export async function onRequestPost(context) {
     media_source: body.mediaSource || null,
     image_url: imageUrl,
     status: 'pending'
-  }]).select().single();
+  });
 
   if (error) {
-    return new Response(JSON.stringify({ error: error.message }), { status: 500, headers: corsHeaders });
+    return new Response(JSON.stringify({ error: JSON.stringify(error) }), { status: 500, headers: corsHeaders });
   }
 
-  // Fire and forget email notification
   context.waitUntil(
     fetch(new URL('/functions/notify', request.url).toString(), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        firmName: body.firmName,
-        sourceType: body.sourceType,
-        reviewTitle: body.reviewTitle,
-        authorName: body.authorName
-      })
+      body: JSON.stringify({ firmName: body.firmName, sourceType: body.sourceType, reviewTitle: body.reviewTitle, authorName: body.authorName })
     }).catch(e => console.error('Notify error:', e))
   );
 
