@@ -1,3 +1,4 @@
+
 // RenoLobang · functions/approve.js (Cloudflare Pages Function)
 
 const corsHeaders = {
