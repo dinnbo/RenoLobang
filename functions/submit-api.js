@@ -86,8 +86,10 @@ export async function onRequest(context) {
     status: 'pending'
   };
 
-  // Use JSON.stringify to handle the payload
-  const payloadStr = JSON.stringify(payload);
+  // Escape all non-ASCII characters so Cloudflare does not re-encode them
+  const payloadStr = JSON.stringify(payload).replace(/[\u0080-\uFFFF]/g, ch =>
+    '\\u' + ch.charCodeAt(0).toString(16).padStart(4, '0')
+  );
   console.log('Supabase URL:', env.SUPABASE_URL);
   console.log('Payload length:', payloadStr.length);
   console.log('Payload preview:', payloadStr.slice(0, 200));
