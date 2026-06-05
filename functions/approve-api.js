@@ -73,7 +73,7 @@ async function sbUpdate(env, id, updates) {
 async function fetchDataJs(env) {
   const res = await fetch(
     `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${GITHUB_FILE}?ref=${GITHUB_BRANCH}`,
-    { headers: { 'Authorization': `token ${env.GITHUB_TOKEN}`, 'Accept': 'application/vnd.github.v3+json' } }
+    { headers: { 'Authorization': `token ${env.GITHUB_TOKEN}`, 'Accept': 'application/vnd.github.v3+json', 'User-Agent': 'RenoLobang-App' } }
   );
   if (!res.ok) throw new Error(`Could not fetch data.js from GitHub: ${res.status} ${await res.text()}`);
   const fileData = await res.json();
@@ -115,7 +115,8 @@ async function pushToGitHub(newContent, sha, message, env) {
       headers: {
         'Authorization': `token ${env.GITHUB_TOKEN}`,
         'Accept': 'application/vnd.github.v3+json',
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'User-Agent': 'RenoLobang-App'
       },
       body: JSON.stringify({ message, content: encoded, sha, branch: GITHUB_BRANCH })
     }
