@@ -242,7 +242,7 @@
         <div class="reddit-preview-attr" id="redditPreviewAttr"></div>
       </div>
       <div class="field">
-        <label>Review title <span class="hint">(optional – we will generate one if left blank)</span></label>
+        <label>Review title <span class="hint">(optional)</span></label>
         <input type="text" id="reviewTitle" placeholder="e.g. Great design, minor timeline issues" maxlength="100" />
       </div>
       <div class="field">
@@ -403,7 +403,6 @@
     
 
     let title=document.getElementById('reviewTitle').value.trim();
-    if (!title) { const s=body.split(/[.!?]/)[0].trim(); title=s.length>80?s.slice(0,77)+'...':s; }
     let authorName=document.getElementById('authorName')?document.getElementById('authorName').value.trim():'';
     if (!authorName && currentSource!=='community') authorName='Anonymous homeowner';
 
