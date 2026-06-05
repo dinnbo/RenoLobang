@@ -97,22 +97,11 @@ async function fetchDataJs(env) {
 
   const firmsSection = content.slice(arrayStart, arrayEnd + 1);
 
-  // Convert JS object notation to valid JSON
-  const firmsJson = firmsSection
-    .replace(/\/\/[^\n]*/g, '')
-    .replace(/,(\s*[}\]])/g, '$1')
-    .replace(/([{,]\s*)([a-zA-Z_][a-zA-Z0-9_]*)\s*:/g, '$1"$2":');
-
-  // Remove control characters that break JSON parsing
-  const cleanedJson = firmsJson
-    .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g, '')
-    .replace(/\n/g, '\\n')
-    .replace(/\r/g, '\\r')
-    .replace(/\t/g, '\\t');
-
+  // Use Function constructor to safely evaluate JS object literal
+  // This handles all special characters, newlines, emoji etc correctly
   let firms;
   try {
-    firms = JSON.parse(cleanedJson);
+    firms = (new Function(`return ${firmsSection}`))();
   } catch(e) {
     throw new Error('Could not parse firms: ' + e.message);
   }
