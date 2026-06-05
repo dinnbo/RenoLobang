@@ -1,4 +1,4 @@
-// RenoLobang · functions/approve.js (Cloudflare Pages Function)
+// RenoLobang · functions/approve-api.js (Cloudflare Pages Function)
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -8,7 +8,6 @@ const corsHeaders = {
 
 const GITHUB_OWNER = 'dinnbo';
 const GITHUB_REPO = 'RenoLobang';
-const GITHUB_FILE = 'data.js';
 const GITHUB_BRANCH = 'main';
 
 export async function onRequest(context) {
@@ -69,71 +68,65 @@ async function sbUpdate(env, id, updates) {
   });
 }
 
-// ── GITHUB ────────────────────────────────────────────────────────────────────
-async function fetchDataJs(env) {
+// ── GITHUB: read and write data.json ─────────────────────────────────────────
+const ghHeaders = (token) => ({
+  'Authorization': `token ${token}`,
+  'Accept': 'application/vnd.github.v3+json',
+  'User-Agent': 'RenoLobang-App',
+  'Content-Type': 'application/json'
+});
+
+async function fetchDataJson(env) {
   const res = await fetch(
-    `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${GITHUB_FILE}?ref=${GITHUB_BRANCH}`,
-    { headers: { 'Authorization': `token ${env.GITHUB_TOKEN}`, 'Accept': 'application/vnd.github.v3+json', 'User-Agent': 'RenoLobang-App' } }
+    `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/data.json?ref=${GITHUB_BRANCH}`,
+    { headers: ghHeaders(env.GITHUB_TOKEN) }
   );
-  if (!res.ok) throw new Error(`Could not fetch data.js from GitHub: ${res.status} ${await res.text()}`);
+  if (!res.ok) throw new Error(`Could not fetch data.json: ${res.status}`);
   const fileData = await res.json();
   const content = atob(fileData.content.replace(/\n/g, ''));
-
-  // Extract firms using a safer approach - find the array boundaries
-  const dataStart = content.indexOf('firms:');
-  if (dataStart === -1) throw new Error('Could not find firms array in data.js');
-
-  // Find the matching closing bracket for the firms array
-  let depth = 0;
-  let arrayStart = -1;
-  let arrayEnd = -1;
-  for (let i = dataStart; i < content.length; i++) {
-    if (content[i] === '[' && arrayStart === -1) { arrayStart = i; depth = 1; continue; }
-    if (arrayStart === -1) continue;
-    if (content[i] === '[') depth++;
-    else if (content[i] === ']') { depth--; if (depth === 0) { arrayEnd = i; break; } }
-  }
-  if (arrayStart === -1 || arrayEnd === -1) throw new Error('Could not find firms array boundaries');
-
-  const firmsSection = content.slice(arrayStart, arrayEnd + 1);
-
-  // Use Function constructor to safely evaluate JS object literal
-  // This handles all special characters, newlines, emoji etc correctly
-  let firms;
-  try {
-    firms = (new Function(`return ${firmsSection}`))();
-  } catch(e) {
-    throw new Error('Could not parse firms: ' + e.message);
-  }
-
-  return { content, sha: fileData.sha, dataObj: { firms } };
+  const dataObj = JSON.parse(content);
+  return { dataObj, sha: fileData.sha };
 }
 
-function serialise(currentContent, dataObj) {
-  const firmsJson = JSON.stringify(dataObj.firms, null, 2)
-    .replace(/"([a-zA-Z_][a-zA-Z0-9_]*)"\s*:/g, '$1:');
-  return currentContent.replace(
-    /const RENOLOBANG_DATA = {[\s\S]*?};\s*\n\s*\/\/ Helper/,
-    `const RENOLOBANG_DATA = {\n  firms: ${firmsJson}\n};\n\n// Helper`
-  );
-}
-
-async function pushToGitHub(newContent, sha, message, env) {
-  const encoded = btoa(unescape(encodeURIComponent(newContent)));
+async function pushDataJson(dataObj, sha, message, env) {
+  const content = btoa(unescape(encodeURIComponent(JSON.stringify(dataObj, null, 2))));
   const res = await fetch(
-    `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${GITHUB_FILE}`,
+    `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/data.json`,
     {
       method: 'PUT',
-      headers: {
-        'Authorization': `token ${env.GITHUB_TOKEN}`,
-        'Accept': 'application/vnd.github.v3+json',
-        'Content-Type': 'application/json',
-        'User-Agent': 'RenoLobang-App'
-      },
-      body: JSON.stringify({ message, content: encoded, sha, branch: GITHUB_BRANCH })
+      headers: ghHeaders(env.GITHUB_TOKEN),
+      body: JSON.stringify({ message, content, sha, branch: GITHUB_BRANCH })
     }
   );
-  if (!res.ok) throw new Error('GitHub push failed: ' + await res.text());
+  if (!res.ok) throw new Error(`GitHub push failed: ${res.status} ${await res.text()}`);
+}
+
+async function pushDataJs(dataObj, env) {
+  // Also update data.js so the frontend HTML pages get the new data
+  const firms = JSON.stringify(dataObj.firms);
+  const jsContent = `// RenoLobang · data.js - auto-generated, do not edit manually\n\nconst RENOLOBANG_DATA = ${JSON.stringify(dataObj)};\n\nfunction getAllFirms() {\n  return RENOLOBANG_DATA.firms.map(f => ({\n    ...f,\n    reviews: f.reviews.filter(r => r.published)\n  }));\n}\n\nfunction countBySource(firm) {\n  const reviews = firm.reviews.filter(r => r.published);\n  return {\n    verified: reviews.filter(r => r.source === 'verified').length,\n    unverified: reviews.filter(r => r.source === 'unverified').length,\n    community: reviews.filter(r => r.source === 'community').length,\n    media: reviews.filter(r => r.source === 'media').length,\n    total: reviews.length\n  };\n}\n`;
+
+  // Get current data.js sha
+  const res = await fetch(
+    `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/data.js?ref=${GITHUB_BRANCH}`,
+    { headers: ghHeaders(env.GITHUB_TOKEN) }
+  );
+  if (!res.ok) return; // skip if not found
+  const fileData = await res.json();
+
+  await fetch(
+    `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/data.js`,
+    {
+      method: 'PUT',
+      headers: ghHeaders(env.GITHUB_TOKEN),
+      body: JSON.stringify({
+        message: 'Sync data.js from data.json',
+        content: btoa(unescape(encodeURIComponent(jsContent))),
+        sha: fileData.sha,
+        branch: GITHUB_BRANCH
+      })
+    }
+  );
 }
 
 // ── ACTIONS ───────────────────────────────────────────────────────────────────
@@ -148,12 +141,10 @@ async function handleReject(submissionId, adminNotes, env) {
 
 async function handleApprove(submissionId, adminNotes, env) {
   const sub = await sbGet(env, submissionId);
-  if (!sub) {
-    return new Response(JSON.stringify({ error: 'Submission not found' }), { status: 404, headers: corsHeaders });
-  }
+  if (!sub) return new Response(JSON.stringify({ error: 'Submission not found' }), { status: 404, headers: corsHeaders });
 
-  let dataJs;
-  try { dataJs = await fetchDataJs(env); } catch (e) {
+  let dataJson;
+  try { dataJson = await fetchDataJson(env); } catch (e) {
     return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: corsHeaders });
   }
 
@@ -181,61 +172,48 @@ async function handleApprove(submissionId, adminNotes, env) {
     ...(sub.image_url && { imageUrl: sub.image_url })
   };
 
-  const firmIdx = dataJs.dataObj.firms.findIndex(f => f.id === sub.firm_id);
+  const firmIdx = dataJson.dataObj.firms.findIndex(f => f.id === sub.firm_id);
   if (firmIdx === -1) {
     const newFirmId = sub.firm_name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-    dataJs.dataObj.firms.push({
-      id: newFirmId,
-      name: sub.firm_name,
+    dataJson.dataObj.firms.push({
+      id: newFirmId, name: sub.firm_name,
       initials: sub.firm_name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase(),
       types: sub.property_type ? [sub.property_type] : ['HDB'],
-      established: '',
-      website: '',
-      affiliates: [],
-      description: '',
-      reviews: [newReview]
+      established: '', website: '', affiliates: [], description: '', reviews: [newReview]
     });
   } else {
-    dataJs.dataObj.firms[firmIdx].reviews.push(newReview);
+    dataJson.dataObj.firms[firmIdx].reviews.push(newReview);
   }
 
   try {
-    const newContent = serialise(dataJs.content, dataJs.dataObj);
-    await pushToGitHub(newContent, dataJs.sha, `Publish review (${sub.firm_name})`, env);
+    await pushDataJson(dataJson.dataObj, dataJson.sha, `Publish review (${sub.firm_name})`, env);
+    await pushDataJs(dataJson.dataObj, env);
   } catch (e) {
     return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: corsHeaders });
   }
 
   await sbUpdate(env, submissionId, {
-    status: 'approved',
-    admin_notes: adminNotes || '',
-    reviewed_at: new Date().toISOString(),
-    published_review_id: reviewId
+    status: 'approved', admin_notes: adminNotes || '',
+    reviewed_at: new Date().toISOString(), published_review_id: reviewId
   });
 
   return new Response(JSON.stringify({ success: true, action: 'approved', reviewId }), { status: 200, headers: corsHeaders });
 }
 
 async function handleDelete(submissionId, reviewId, env) {
-  if (!reviewId) {
-    return new Response(JSON.stringify({ error: 'reviewId required' }), { status: 400, headers: corsHeaders });
-  }
+  if (!reviewId) return new Response(JSON.stringify({ error: 'reviewId required' }), { status: 400, headers: corsHeaders });
   try {
-    const dataJs = await fetchDataJs(env);
+    const dataJson = await fetchDataJson(env);
     let deleted = false;
-    for (const firm of dataJs.dataObj.firms) {
+    for (const firm of dataJson.dataObj.firms) {
       const before = firm.reviews.length;
       firm.reviews = firm.reviews.filter(r => r.id !== reviewId);
       if (firm.reviews.length < before) deleted = true;
     }
-    if (!deleted) {
-      return new Response(JSON.stringify({ error: 'Review not found' }), { status: 404, headers: corsHeaders });
-    }
-    const newContent = serialise(dataJs.content, dataJs.dataObj);
-    await pushToGitHub(newContent, dataJs.sha, `Delete review ${reviewId}`, env);
-    if (submissionId) {
-      await sbUpdate(env, submissionId, { status: 'deleted', reviewed_at: new Date().toISOString() });
-    }
+    if (!deleted) return new Response(JSON.stringify({ error: 'Review not found' }), { status: 404, headers: corsHeaders });
+    await pushDataJson(dataJson.dataObj, dataJson.sha, `Delete review ${reviewId}`, env);
+    await pushDataJs(dataJson.dataObj, env);
+    if (submissionId) await sbUpdate(env, submissionId, { status: 'deleted', reviewed_at: new Date().toISOString() });
     return new Response(JSON.stringify({ success: true, action: 'deleted' }), { status: 200, headers: corsHeaders });
   } catch (e) {
     return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: corsHeaders });
@@ -243,25 +221,17 @@ async function handleDelete(submissionId, reviewId, env) {
 }
 
 async function handleEdit(reviewId, updates, env) {
-  if (!reviewId) {
-    return new Response(JSON.stringify({ error: 'reviewId required' }), { status: 400, headers: corsHeaders });
-  }
+  if (!reviewId) return new Response(JSON.stringify({ error: 'reviewId required' }), { status: 400, headers: corsHeaders });
   try {
-    const dataJs = await fetchDataJs(env);
+    const dataJson = await fetchDataJson(env);
     let found = false;
-    for (const firm of dataJs.dataObj.firms) {
+    for (const firm of dataJson.dataObj.firms) {
       const idx = firm.reviews.findIndex(r => r.id === reviewId);
-      if (idx > -1) {
-        firm.reviews[idx] = { ...firm.reviews[idx], ...updates };
-        found = true;
-        break;
-      }
+      if (idx > -1) { firm.reviews[idx] = { ...firm.reviews[idx], ...updates }; found = true; break; }
     }
-    if (!found) {
-      return new Response(JSON.stringify({ error: 'Review not found' }), { status: 404, headers: corsHeaders });
-    }
-    const newContent = serialise(dataJs.content, dataJs.dataObj);
-    await pushToGitHub(newContent, dataJs.sha, `Edit review ${reviewId}`, env);
+    if (!found) return new Response(JSON.stringify({ error: 'Review not found' }), { status: 404, headers: corsHeaders });
+    await pushDataJson(dataJson.dataObj, dataJson.sha, `Edit review ${reviewId}`, env);
+    await pushDataJs(dataJson.dataObj, env);
     return new Response(JSON.stringify({ success: true, action: 'edited' }), { status: 200, headers: corsHeaders });
   } catch (e) {
     return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: corsHeaders });
