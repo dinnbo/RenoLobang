@@ -79,17 +79,40 @@ async function fetchDataJs(env) {
   const fileData = await res.json();
   const content = atob(fileData.content.replace(/\n/g, ''));
 
-  const firmsMatch = content.match(/firms:\s*(\[[\s\S]*?\])\s*\n\s*\}/);
-  if (!firmsMatch) throw new Error('Could not find firms array in data.js');
+  // Extract firms using a safer approach - find the array boundaries
+  const dataStart = content.indexOf('firms:');
+  if (dataStart === -1) throw new Error('Could not find firms array in data.js');
 
-  const firmsJson = firmsMatch[1]
+  // Find the matching closing bracket for the firms array
+  let depth = 0;
+  let arrayStart = -1;
+  let arrayEnd = -1;
+  for (let i = dataStart; i < content.length; i++) {
+    if (content[i] === '[' && arrayStart === -1) { arrayStart = i; depth = 1; continue; }
+    if (arrayStart === -1) continue;
+    if (content[i] === '[') depth++;
+    else if (content[i] === ']') { depth--; if (depth === 0) { arrayEnd = i; break; } }
+  }
+  if (arrayStart === -1 || arrayEnd === -1) throw new Error('Could not find firms array boundaries');
+
+  const firmsSection = content.slice(arrayStart, arrayEnd + 1);
+
+  // Convert JS object notation to valid JSON
+  const firmsJson = firmsSection
     .replace(/\/\/[^\n]*/g, '')
     .replace(/,(\s*[}\]])/g, '$1')
     .replace(/([{,]\s*)([a-zA-Z_][a-zA-Z0-9_]*)\s*:/g, '$1"$2":');
 
+  // Remove control characters that break JSON parsing
+  const cleanedJson = firmsJson
+    .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g, '')
+    .replace(/\n/g, '\\n')
+    .replace(/\r/g, '\\r')
+    .replace(/\t/g, '\\t');
+
   let firms;
   try {
-    firms = JSON.parse(firmsJson);
+    firms = JSON.parse(cleanedJson);
   } catch(e) {
     throw new Error('Could not parse firms: ' + e.message);
   }
