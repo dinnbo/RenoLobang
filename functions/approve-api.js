@@ -75,7 +75,7 @@ async function fetchDataJs(env) {
     `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${GITHUB_FILE}?ref=${GITHUB_BRANCH}`,
     { headers: { 'Authorization': `token ${env.GITHUB_TOKEN}`, 'Accept': 'application/vnd.github.v3+json' } }
   );
-  if (!res.ok) throw new Error('Could not fetch data.js from GitHub');
+  if (!res.ok) throw new Error(`Could not fetch data.js from GitHub: ${res.status} ${await res.text()}`);
   const fileData = await res.json();
   const content = atob(fileData.content.replace(/\n/g, ''));
 
